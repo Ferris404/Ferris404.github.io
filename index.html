@@ -36,6 +36,11 @@
             font-size: 1.8em;
             font-weight: 600;
         }
+        h3 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
         p {
             color: #a0a0a0;
             margin-bottom: 20px;
@@ -52,7 +57,10 @@
             font-weight: 500;
             font-size: 0.9em;
         }
-        input[type="file"], input[type="number"], input[type="range"], input[type="checkbox"] {
+        input[type="file"],
+        input[type="number"],
+        input[type="range"],
+        input[type="checkbox"] {
             width: 100%;
             padding: 8px;
             border: 1px solid #4d4d4d;
@@ -97,35 +105,19 @@
         }
         #output {
             margin-top: 20px;
-            position: relative;
         }
         #previewImg {
             max-width: 100%;
             border-radius: 6px;
             border: 1px solid #4d4d4d;
-            cursor: zoom-in;
-        }
-        .magnifier {
-            position: absolute;
-            border: 2px solid #4dabf7;
-            border-radius: 50%;
-            background-color: rgba(44, 44, 44, 0.9);
-            pointer-events: none;
-            display: none;
-            overflow: hidden;
-            z-index: 10;
-        }
-        .magnifier img {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            object-fit: cover;
         }
         #progress {
             margin-top: 15px;
             color: #a0a0a0;
         }
-        canvas { display: none; }
+        canvas {
+            display: none;
+        }
         .tooltip {
             position: relative;
             display: inline-block;
@@ -176,7 +168,7 @@
     <div class="container">
         <h1>Color Splitter</h1>
         <p>For the people that can't be bothered downloading stuff.</p>
-        
+
         <div class="input-group">
             <label for="imageInput">Upload Your Image:</label>
             <input type="file" id="imageInput" accept="image/*">
@@ -189,31 +181,27 @@
                     <span class="tooltiptext">Choose how many unique colors to keep.</span></label>
                 <input type="number" id="numColors" value="16" min="1">
             </div>
-
             <div class="input-group">
                 <label for="minRegionSize">Remove Stray Pixels <span class="tooltip">?</span>
-                    <span class="tooltiptext">Have it set to 3 and all the tiny dots get removed.</span></label>
+                    <span class="tooltiptext">Set to 3 to remove tiny dots.</span></label>
                 <input type="range" id="minRegionSize" min="0" value="0" step="1">
                 <span id="minRegionValue">0</span>
             </div>
-
             <div class="input-group">
                 <label for="colorSimilarityThreshold">Merge Similar Colors <span class="tooltip">?</span>
-                    <span class="tooltiptext"></span></label>
+                    <span class="tooltiptext">Higher values merge similar shades.</span></label>
                 <input type="range" id="colorSimilarityThreshold" min="0" value="15" step="1">
                 <span id="colorSimilarityValue">15</span>
             </div>
-
             <div class="input-group">
                 <label for="outputSize">Output Size <span class="tooltip">?</span>
-                    <span class="tooltiptext">Sets the image size to the specified amount.</span></label>
+                    <span class="tooltiptext">Sets the image size in pixels.</span></label>
                 <input type="number" id="outputSize" value="800" min="1">
             </div>
-
             <div class="input-group checkbox-group">
                 <input type="checkbox" id="stretchImage" checked>
                 <label for="stretchImage" style="display: inline;">Stretch Image <span class="tooltip">?</span>
-                    <span class="tooltiptext">If the image should stretch or not.</span></label>
+                    <span class="tooltiptext">Check to stretch; uncheck to crop.</span></label>
             </div>
         </div>
 
@@ -225,34 +213,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script>
-        document.getElementById('minRegionSize').oninput = function() {
-            document.getElementById('minRegionValue').textContent = this.value;
-        };
-        document.getElementById('colorSimilarityThreshold').oninput = function() {
-            document.getElementById('colorSimilarityValue').textContent = this.value;
-        };
+        // Utility Functions
+        const $ = (id) => document.getElementById(id);
 
+        // Slider Value Updates
+        $('minRegionSize').addEventListener('input', () => $('minRegionValue').textContent = $('minRegionSize').value);
+        $('colorSimilarityThreshold').addEventListener('input', () => $('colorSimilarityValue').textContent = $('colorSimilarityThreshold').value);
+
+        // Color Distance Calculation
         function distance(a, b) {
-            return Math.sqrt(
-                (a[0] - b[0]) ** 2 +
-                (a[1] - b[1]) ** 2 +
-                (a[2] - b[2]) ** 2
-            );
+            return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
         }
 
+        // K-Means++ Initialization
         function kMeansPlusPlus(pixels, k) {
             const centroids = [];
-            const firstIdx = Math.floor(Math.random() * pixels.length);
-            centroids.push({ color: [...pixels[firstIdx]], count: 0 });
+            centroids.push({ color: [...pixels[Math.floor(Math.random() * pixels.length)]], count: 0 });
 
             for (let i = 1; i < k * 1.5; i++) {
-                const distances = pixels.map(p => {
-                    const minDist = Math.min(...centroids.map(c => distance(p, c.color)));
-                    return minDist ** 2;
-                });
+                const distances = pixels.map(p => Math.min(...centroids.map(c => distance(p, c.color))) ** 2);
                 const total = distances.reduce((a, b) => a + b, 0);
-                const rand = Math.random() * total;
-                let sum = 0;
+                let sum = 0, rand = Math.random() * total;
                 for (let j = 0; j < distances.length; j++) {
                     sum += distances[j];
                     if (sum >= rand) {
@@ -264,6 +245,7 @@
             return centroids;
         }
 
+        // K-Means Clustering
         function kMeans(pixels, k, maxIterations = 15) {
             let centroids = kMeansPlusPlus(pixels, k);
             let clusters;
@@ -271,8 +253,8 @@
             for (let iter = 0; iter < maxIterations; iter++) {
                 clusters = pixels.map(pixel => {
                     let minDist = Infinity, clusterIdx = 0;
-                    centroids.forEach((centroid, idx) => {
-                        const dist = distance(pixel, centroid.color);
+                    centroids.forEach((c, idx) => {
+                        const dist = distance(pixel, c.color);
                         if (dist < minDist) {
                             minDist = dist;
                             clusterIdx = idx;
@@ -291,22 +273,18 @@
                     centroids[c].count += 1;
                 });
                 centroids = centroids.map(c => ({
-                    color: [
-                        Math.round(c.color[0] / (c.count || 1)),
-                        Math.round(c.color[1] / (c.count || 1)),
-                        Math.round(c.color[2] / (c.count || 1))
-                    ],
+                    color: c.count ? c.color.map(v => Math.round(v / c.count)) : [0, 0, 0],
                     count: c.count
                 }));
 
                 if (centroids.every((c, i) => distance(c.color, oldCentroids[i].color) < 1)) break;
             }
-
             return { centroids, clusters };
         }
 
+        // Merge Similar Colors
         function mergeSimilarColors(centroids, threshold) {
-            if (threshold === 0) return centroids.map(c => c.color);
+            if (!threshold) return centroids.map(c => c.color);
 
             const uniqueColors = [];
             const used = new Set();
@@ -314,17 +292,15 @@
             for (let i = 0; i < centroids.length; i++) {
                 if (used.has(i)) continue;
                 const color1 = centroids[i].color;
-                const mergedColor = [...color1];
-                let mergedCount = centroids[i].count;
+                let mergedColor = [...color1], mergedCount = centroids[i].count;
 
                 for (let j = i + 1; j < centroids.length; j++) {
                     if (used.has(j)) continue;
                     const color2 = centroids[j].color;
-                    const dist = distance(color1, color2);
-                    if (dist <= threshold) {
-                        mergedColor[0] = Math.round((mergedColor[0] * mergedCount + color2[0] * centroids[j].count) / (mergedCount + centroids[j].count));
-                        mergedColor[1] = Math.round((mergedColor[1] * mergedCount + color2[1] * centroids[j].count) / (mergedCount + centroids[j].count));
-                        mergedColor[2] = Math.round((mergedColor[2] * mergedCount + color2[2] * centroids[j].count) / (mergedCount + centroids[j].count));
+                    if (distance(color1, color2) <= threshold) {
+                        mergedColor = mergedColor.map((v, k) => 
+                            Math.round((v * mergedCount + color2[k] * centroids[j].count) / (mergedCount + centroids[j].count))
+                        );
                         mergedCount += centroids[j].count;
                         used.add(j);
                     }
@@ -332,7 +308,6 @@
                 uniqueColors.push(mergedColor);
                 used.add(i);
             }
-
             return uniqueColors.sort((a, b) => {
                 const countA = centroids.find(c => c.color.every((v, i) => v === a[i]))?.count || 0;
                 const countB = centroids.find(c => c.color.every((v, i) => v === b[i]))?.count || 0;
@@ -340,12 +315,12 @@
             });
         }
 
+        // Clean Small Regions
         function cleanSmallRegions(colorMap, width, height, topCentroids, minSize) {
-            if (minSize === 0) return colorMap;
+            if (!minSize) return colorMap;
 
             const visited = new Uint8Array(width * height);
-            const newColorMap = new Uint8ClampedArray(colorMap.length);
-            newColorMap.set(colorMap);
+            const newColorMap = new Uint8ClampedArray(colorMap);
 
             function floodFill(x, y, targetColor, region) {
                 const stack = [[x, y]];
@@ -371,20 +346,17 @@
                         floodFill(x, y, color, region);
 
                         if (region.length < minSize) {
-                            let nearestColor = topCentroids[0];
-                            let minDist = Infinity;
+                            let nearestColor = topCentroids[0], minDist = Infinity;
                             for (const [rx, ry] of region) {
                                 for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
                                     const nx = rx + dx, ny = ry + dy;
-                                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                    if (nx >= 0 && nx < width && ny >= 0 && ny < height && !region.some(([px, py]) => px === nx && py === ny)) {
                                         const nIdx = (ny * width + nx) * 4;
                                         const neighborColor = [colorMap[nIdx], colorMap[nIdx + 1], colorMap[nIdx + 2]];
-                                        if (!region.some(([px, py]) => px === nx && py === ny)) {
-                                            const dist = distance(color, neighborColor);
-                                            if (dist < minDist) {
-                                                minDist = dist;
-                                                nearestColor = neighborColor;
-                                            }
+                                        const dist = distance(color, neighborColor);
+                                        if (dist < minDist) {
+                                            minDist = dist;
+                                            nearestColor = neighborColor;
                                         }
                                     }
                                 }
@@ -403,17 +375,17 @@
             return newColorMap;
         }
 
+        // Clean Stray Pixels in Layers
         function cleanStrayPixels(layerData, width, height, minSize = 5) {
             const visited = new Uint8Array(width * height);
-            const newLayerData = new Uint8ClampedArray(layerData.length);
-            newLayerData.set(layerData);
+            const newLayerData = new Uint8ClampedArray(layerData);
 
             function floodFill(x, y, region) {
                 const stack = [[x, y]];
                 while (stack.length) {
                     const [cx, cy] = stack.pop();
                     const idx = (cy * width + cx) * 4;
-                    if (cx < 0 || cx >= width || cy < 0 || cy >= height || visited[cy * width + cx] || layerData[idx + 3] === 0) {
+                    if (cx < 0 || cx >= width || cy < 0 || cy >= height || visited[cy * width + cx] || !layerData[idx + 3]) {
                         continue;
                     }
                     visited[cy * width + cx] = 1;
@@ -424,14 +396,12 @@
 
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
-                    if (!visited[y * width + x] && layerData[(y * width + x) * 4 + 3] !== 0) {
+                    if (!visited[y * width + x] && layerData[(y * width + x) * 4 + 3]) {
                         const region = [];
                         floodFill(x, y, region);
-
                         if (region.length < minSize) {
                             for (const [rx, ry] of region) {
-                                const rIdx = (ry * width + rx) * 4;
-                                newLayerData[rIdx + 3] = 0;
+                                newLayerData[(ry * width + rx) * 4 + 3] = 0;
                             }
                         }
                     }
@@ -440,17 +410,14 @@
             return newLayerData;
         }
 
+        // Export File with File Picker
         async function exportFile(blob) {
             if (window.showSaveFilePicker) {
                 try {
-                    const options = {
+                    const handle = await window.showSaveFilePicker({
                         suggestedName: 'color_layers.zip',
-                        types: [{
-                            description: 'ZIP File',
-                            accept: { 'application/zip': ['.zip'] },
-                        }],
-                    };
-                    const handle = await window.showSaveFilePicker(options);
+                        types: [{ description: 'ZIP File', accept: { 'application/zip': ['.zip'] } }]
+                    });
                     const writable = await handle.createWritable();
                     await writable.write(blob);
                     await writable.close();
@@ -459,23 +426,23 @@
                     console.error('Error saving file:', err);
                 }
             }
-            // Fallback to saveAs if File System Access API is not available
             saveAs(blob, 'color_layers.zip');
         }
 
+        // Main Processing Function
         async function processImage() {
-            const fileInput = document.getElementById('imageInput');
-            const numColors = parseInt(document.getElementById('numColors').value) || 1;
-            const minRegionSize = parseInt(document.getElementById('minRegionSize').value) || 0;
-            const colorSimilarityThreshold = parseInt(document.getElementById('colorSimilarityThreshold').value) || 0;
-            const outputSize = parseInt(document.getElementById('outputSize').value) || 1;
-            const stretchImage = document.getElementById('stretchImage').checked;
-            const outputDiv = document.getElementById('output');
-            const progressDiv = document.getElementById('progress');
-            const processBtn = document.getElementById('processBtn');
-            
+            const fileInput = $('imageInput');
+            const numColors = parseInt($('numColors').value) || 1;
+            const minRegionSize = parseInt($('minRegionSize').value) || 0;
+            const colorSimilarityThreshold = parseInt($('colorSimilarityThreshold').value) || 0;
+            const outputSize = parseInt($('outputSize').value) || 1;
+            const stretchImage = $('stretchImage').checked;
+            const outputDiv = $('output');
+            const progressDiv = $('progress');
+            const processBtn = $('processBtn');
+
             processBtn.disabled = true;
-            progressDiv.innerHTML = '<p>Processing... (just fuckin wait)</p>';
+            progressDiv.innerHTML = '<p>Processing... (please wait)</p>';
 
             if (!fileInput.files.length) {
                 alert('Please upload an image!');
@@ -484,64 +451,45 @@
                 return;
             }
 
-            const maxColors = 1000;
-            const maxSize = 2000;
-
+            const maxColors = 1000, maxSize = 2000;
             const cappedNumColors = Math.min(numColors, maxColors);
-            const cappedOutputSize = Math.max(1, Math.min(outputSize, maxSize));
-            const cappedMinRegionSize = Math.max(0, Math.min(minRegionSize, maxSize));
-            const cappedColorSimilarityThreshold = Math.max(0, Math.min(colorSimilarityThreshold, 100));
+            const cappedOutputSize = Math.min(Math.max(1, outputSize), maxSize);
+            const cappedMinRegionSize = Math.min(Math.max(0, minRegionSize), maxSize);
+            const cappedColorSimilarityThreshold = Math.min(Math.max(0, colorSimilarityThreshold), 100);
 
             if (cappedNumColors !== numColors || cappedOutputSize !== outputSize || 
                 cappedMinRegionSize !== minRegionSize || cappedColorSimilarityThreshold !== colorSimilarityThreshold) {
-                alert('Some values were capped to prevent performance issues or crashes. Recommended ranges: Colors 1-32, Region Size 0-50, Similarity Threshold 0-50, Output 50-2000.');
+                alert('Some values were capped: Colors (1-1000), Size (1-2000), Region (0-2000), Similarity (0-100).');
             }
 
-            const file = fileInput.files[0];
             const img = new Image();
-            img.src = URL.createObjectURL(file);
-
+            img.src = URL.createObjectURL(fileInput.files[0]);
             img.onload = async () => {
-                const resizedCanvas = document.createElement('canvas');
-                const resizedCtx = resizedCanvas.getContext('2d');
-                
-                resizedCanvas.width = cappedOutputSize;
-                resizedCanvas.height = cappedOutputSize;
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = cappedOutputSize;
+                canvas.height = cappedOutputSize;
 
-                const srcWidth = img.width;
-                const srcHeight = img.height;
+                const srcWidth = img.width, srcHeight = img.height;
                 let sx, sy, sWidth, sHeight;
-
                 if (stretchImage) {
-                    sx = 0;
-                    sy = 0;
-                    sWidth = srcWidth;
-                    sHeight = srcHeight;
+                    [sx, sy, sWidth, sHeight] = [0, 0, srcWidth, srcHeight];
                 } else {
                     if (srcWidth > srcHeight) {
-                        sWidth = srcHeight;
-                        sHeight = srcHeight;
-                        sx = (srcWidth - sWidth) / 2;
-                        sy = 0;
+                        [sWidth, sHeight, sx, sy] = [srcHeight, srcHeight, (srcWidth - srcHeight) / 2, 0];
                     } else {
-                        sWidth = srcWidth;
-                        sHeight = srcWidth;
-                        sx = 0;
-                        sy = (srcHeight - sHeight) / 2;
+                        [sWidth, sHeight, sx, sy] = [srcWidth, srcWidth, 0, (srcHeight - srcWidth) / 2];
                     }
                 }
+                ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, cappedOutputSize, cappedOutputSize);
 
-                resizedCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, cappedOutputSize, cappedOutputSize);
-                const imageData = resizedCtx.getImageData(0, 0, cappedOutputSize, cappedOutputSize);
+                const imageData = ctx.getImageData(0, 0, cappedOutputSize, cappedOutputSize);
                 const pixels = imageData.data;
-
-                const pixelSamples = [];
-                for (let i = 0; i < pixels.length; i += 4) {
-                    pixelSamples.push([pixels[i], pixels[i + 1], pixels[i + 2]]);
-                }
+                const pixelSamples = Array.from({ length: pixels.length / 4 }, (_, i) => 
+                    [pixels[i * 4], pixels[i * 4 + 1], pixels[i * 4 + 2]]
+                );
 
                 const { centroids, clusters } = kMeans(pixelSamples, cappedNumColors);
-
                 const counts = new Array(centroids.length).fill(0);
                 clusters.forEach(idx => counts[idx]++);
                 const centroidData = centroids.map((c, i) => ({ color: c.color, count: counts[i] }));
@@ -551,10 +499,10 @@
                 if (uniqueCentroids.length > cappedNumColors) {
                     uniqueCentroids = uniqueCentroids.slice(0, cappedNumColors);
                 } else if (uniqueCentroids.length < cappedNumColors) {
-                    const remaining = centroidData.slice(uniqueCentroids.length).slice(0, cappedNumColors - uniqueCentroids.length);
-                    uniqueCentroids = uniqueCentroids.concat(remaining.map(c => c.color));
+                    uniqueCentroids = uniqueCentroids.concat(
+                        centroidData.slice(uniqueCentroids.length, cappedNumColors).map(c => c.color)
+                    );
                 }
-
                 const topCentroids = uniqueCentroids;
 
                 let colorMap = new Uint8ClampedArray(pixels.length);
@@ -563,83 +511,28 @@
                     const end = Math.min(i + chunkSize, pixels.length / 4);
                     for (let j = i; j < end; j++) {
                         const pixel = pixelSamples[j];
-                        let minDist = Infinity, nearestColor = topCentroids[0];
-                        for (const color of topCentroids) {
-                            const dist = distance(pixel, color);
-                            if (dist < minDist) {
-                                minDist = dist;
-                                nearestColor = color;
-                            }
-                        }
+                        const nearestColor = topCentroids.reduce((prev, curr) => 
+                            distance(pixel, curr) < distance(pixel, prev) ? curr : prev
+                        );
                         const offset = j * 4;
-                        colorMap[offset] = nearestColor[0];
-                        colorMap[offset + 1] = nearestColor[1];
-                        colorMap[offset + 2] = nearestColor[2];
-                        colorMap[offset + 3] = pixels[offset + 3];
+                        [colorMap[offset], colorMap[offset + 1], colorMap[offset + 2], colorMap[offset + 3]] = 
+                            [...nearestColor, pixels[offset + 3]];
                     }
                 }
 
-                if (cappedMinRegionSize > 0) {
+                if (cappedMinRegionSize) {
                     colorMap = cleanSmallRegions(colorMap, cappedOutputSize, cappedOutputSize, topCentroids, cappedMinRegionSize);
                 }
 
-                const finalData = resizedCtx.createImageData(cappedOutputSize, cappedOutputSize);
-                finalData.data.set(colorMap);
-                resizedCtx.putImageData(finalData, 0, 0);
-
+                ctx.putImageData(new ImageData(colorMap, cappedOutputSize, cappedOutputSize), 0, 0);
                 const previewImg = document.createElement('img');
                 previewImg.id = 'previewImg';
-                previewImg.src = resizedCanvas.toDataURL('image/png');
-                previewImg.addEventListener('mousemove', magnify);
-                previewImg.addEventListener('mouseleave', hideMagnifier);
-
-                const outputDivElement = document.getElementById('output');
-                outputDivElement.innerHTML = '';
-                outputDivElement.appendChild(previewImg);
-
-                const magnifier = document.createElement('div');
-                magnifier.className = 'magnifier';
-                const magnifierImg = document.createElement('img');
-                magnifier.appendChild(magnifierImg);
-                outputDivElement.appendChild(magnifier);
-
-                function magnify(event) {
-                    const img = previewImg;
-                    const mag = magnifier;
-                    const magImg = magnifierImg;
-
-                    mag.style.display = 'block';
-                    const magnifyFactor = 3;
-                    const magWidth = 200;
-                    const magHeight = 200;
-
-                    const rect = img.getBoundingClientRect();
-                    const mouseX = event.clientX - rect.left;
-                    const mouseY = event.clientY - rect.top;
-
-                    const magX = mouseX - magWidth / 2;
-                    const magY = mouseY - magHeight / 2;
-
-                    mag.style.left = `${Math.max(0, Math.min(magX, rect.width - magWidth))}px`;
-                    mag.style.top = `${Math.max(0, Math.min(magY, rect.height - magHeight))}px`;
-
-                    const zoomX = (mouseX / img.width) * resizedCanvas.width;
-                    const zoomY = (mouseY / img.height) * resizedCanvas.height;
-                    const zoomWidth = resizedCanvas.width / magnifyFactor;
-                    const zoomHeight = resizedCanvas.height / magnifyFactor;
-
-                    resizedCtx.drawImage(resizedCanvas, 
-                        zoomX - zoomWidth / 2, zoomY - zoomHeight / 2, zoomWidth, zoomHeight,
-                        0, 0, magWidth, magHeight);
-                    magImg.src = resizedCanvas.toDataURL('image/png');
-                }
-
-                function hideMagnifier() {
-                    magnifier.style.display = 'none';
-                }
+                previewImg.src = canvas.toDataURL('image/png');
+                outputDiv.innerHTML = '';
+                outputDiv.appendChild(previewImg);
 
                 const zip = new JSZip();
-                topCentroids.forEach((color) => {
+                topCentroids.forEach(color => {
                     const splitCanvas = document.createElement('canvas');
                     splitCanvas.width = cappedOutputSize;
                     splitCanvas.height = cappedOutputSize;
@@ -647,36 +540,27 @@
                     const splitData = splitCtx.createImageData(cappedOutputSize, cappedOutputSize);
 
                     for (let i = 0; i < colorMap.length; i += 4) {
-                        if (colorMap[i] === color[0] &&
-                            colorMap[i + 1] === color[1] &&
-                            colorMap[i + 2] === color[2]) {
-                            splitData.data[i] = color[0];
-                            splitData.data[i + 1] = color[1];
-                            splitData.data[i + 2] = color[2];
-                            splitData.data[i + 3] = colorMap[i + 3];
+                        if (colorMap[i] === color[0] && colorMap[i + 1] === color[1] && colorMap[i + 2] === color[2]) {
+                            splitData.data.set(colorMap.slice(i, i + 4), i);
                         } else {
                             splitData.data[i + 3] = 0;
                         }
                     }
 
-                    const cleanedData = cleanStrayPixels(splitData.data, cappedOutputSize, cappedOutputSize, 5);
-                    splitData.data.set(cleanedData);
-                    splitCtx.putImageData(splitData, 0, 0);
-
-                    const hex = color.map(v => v.toString(16).padStart(2, '0')).join('');
-                    const dataUrl = splitCanvas.toDataURL('image/png');
-                    const base64Data = dataUrl.split(',')[1];
-                    zip.file(`${hex}.png`, base64Data, { base64: true });
+                    const cleanedData = cleanStrayPixels(splitData.data, cappedOutputSize, cappedOutputSize);
+                    splitCtx.putImageData(new ImageData(cleanedData, cappedOutputSize, cappedOutputSize), 0, 0);
+                    zip.file(`${color.map(v => v.toString(16).padStart(2, '0')).join('')}.png`, 
+                        splitCanvas.toDataURL('image/png').split(',')[1], { base64: true });
                 });
 
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 const downloadBtn = document.createElement('button');
                 downloadBtn.textContent = 'Download Color Layers';
-                downloadBtn.onclick = () => exportFile(zipBlob); // Use exportFile instead of saveAs
-                outputDivElement.appendChild(document.createElement('br'));
-                outputDivElement.appendChild(downloadBtn);
-                
-                progressDiv.innerHTML = `<p>Processing complete Generated ${topCentroids.length} color layers.</p>`;
+                downloadBtn.onclick = () => exportFile(zipBlob);
+                outputDiv.appendChild(document.createElement('br'));
+                outputDiv.appendChild(downloadBtn);
+
+                progressDiv.innerHTML = `<p>Processing complete! Generated ${topCentroids.length} color layers.</p>`;
                 processBtn.disabled = false;
             };
         }
