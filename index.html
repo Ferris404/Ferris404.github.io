@@ -4,24 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Split images into color layers with advanced controls for color extraction and processing">
-    <meta name="theme-color" content="#1a1a1a">
-    <title>Color Splitter - Image Color Layer Extraction Tool</title>
+    <title>Color Splitter</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-bg: #1a1a1a;
-            --secondary-bg: #2c2c2c;
-            --tertiary-bg: #3c3c3c;
-            --border-color: #4d4d4d;
-            --primary-text: #e0e0e0;
-            --secondary-text: #a0a0a0;
-            --accent-color: #60a5fa;
-            --accent-hover: #3b82f6;
-            --accent-active: #2563eb;
-            --shadow-color: rgba(0, 0, 0, 0.4);
-            --accent-shadow: rgba(59, 130, 246, 0.5);
+            --bg-color: #111827;
+            --surface-color: #1f2937;
+            --surface-hover: #374151;
+            --border-color: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
         }
 
         * {
@@ -31,460 +29,672 @@
         }
 
         body {
-            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, var(--primary-bg), var(--secondary-bg));
-            margin: 0;
-            padding: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
             min-height: 100vh;
-            color: var(--primary-text);
-            line-height: 1.6;
         }
 
-        .container {
-            background: var(--secondary-bg);
-            border-radius: 16px;
-            box-shadow: 0 8px 24px var(--shadow-color);
-            padding: 30px;
-            width: 100%;
-            max-width: 1200px;
-            text-align: center;
-            animation: fadeIn 0.5s ease-in;
-            border: 1px solid var(--border-color);
+        .app {
+            display: flex;
+            min-height: 100vh;
         }
 
-        @keyframes fadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(-20px); 
-                filter: blur(10px);
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0);
-                filter: blur(0);
-            }
+        /* Sidebar Styles */
+        .sidebar {
+            width: 320px;
+            background-color: var(--surface-color);
+            padding: 24px;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
         }
 
-        h1 {
-            color: var(--accent-color);
-            margin-bottom: 10px;
-            font-size: clamp(1.8em, 4vw, 2.2em);
+        .logo {
+            font-size: 24px;
             font-weight: 700;
-            letter-spacing: 1px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            color: var(--accent-color);
+            margin-bottom: 8px;
         }
 
         .subtitle {
-            color: var(--secondary-text);
-            margin-bottom: 30px;
-            font-size: clamp(0.9em, 2vw, 1em);
-            font-weight: 300;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 24px;
         }
 
-        h3 {
-            color: var(--primary-text);
-            margin-bottom: 15px;
-            font-size: 1.4em;
+        .settings-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .settings-section h3 {
+            font-size: 16px;
             font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
         }
 
         .input-group {
-            margin-bottom: 20px;
-            text-align: left;
+            margin-bottom: 16px;
         }
 
-        label {
+        .input-group label {
             display: block;
             margin-bottom: 8px;
-            color: var(--primary-text);
-            font-weight: 500;
-            font-size: 0.95em;
+            color: var(--text-secondary);
+            font-size: 14px;
         }
 
-        input[type="file"],
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px;
+            background: var(--surface-hover);
+            border: 1px dashed var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-input-button:hover {
+            background: var(--surface-color);
+            border-color: var(--accent-color);
+        }
+
         input[type="number"],
         input[type="range"] {
             width: 100%;
-            padding: 12px;
+            padding: 8px 12px;
+            background: var(--surface-hover);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 0.9em;
-            background: var(--tertiary-bg);
-            color: var(--primary-text);
-            transition: all 0.3s ease;
-        }
-
-        input[type="file"]:hover,
-        input[type="number"]:hover,
-        input[type="range"]:hover {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
-        }
-
-        input[type="file"]:focus,
-        input[type="number"]:focus,
-        input[type="range"]:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
-        }
-
-        input[type="file"]::-webkit-file-upload-button {
-            background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
-            color: white;
-            border: none;
-            padding: 10px 20px;
             border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        input[type="file"]::-webkit-file-upload-button:hover {
-            background: linear-gradient(135deg, var(--accent-hover), var(--accent-active));
-            transform: translateY(-1px);
+            color: var(--text-primary);
+            font-size: 14px;
         }
 
         input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
             height: 6px;
+            background: var(--surface-hover);
+            border-radius: 3px;
+            outline: none;
             padding: 0;
-            cursor: pointer;
+            margin: 10px 0;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 18px;
             height: 18px;
-            border-radius: 50%;
             background: var(--accent-color);
+            border-radius: 50%;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
 
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 6px;
+            background: var(--surface-hover);
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-ms-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-ms-track {
+            height: 6px;
+            background: transparent;
+            border-color: transparent;
+            color: transparent;
+        }
+
+        input[type="range"]::-ms-fill-lower {
+            background: var(--accent-color);
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-ms-fill-upper {
+            background: var(--surface-hover);
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover,
+        input[type="range"]::-moz-range-thumb:hover,
+        input[type="range"]::-ms-thumb:hover {
             background: var(--accent-hover);
+            transform: scale(1.1);
         }
 
-        input[type="range"] + span {
-            display: inline-block;
-            margin-left: 10px;
-            font-size: 0.9em;
-            color: var(--secondary-text);
-            min-width: 30px;
+        .range-value {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
         }
 
         button {
-            background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-color);
             color: white;
-            padding: 12px 28px;
             border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
+            border-radius: 6px;
             font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            cursor: pointer;
+            transition: background 0.2s;
         }
 
         button:hover {
-            background: linear-gradient(135deg, var(--accent-hover), var(--accent-active));
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px var(--accent-shadow);
-        }
-
-        button:active {
-            transform: translateY(-1px);
+            background: var(--accent-hover);
         }
 
         button:disabled {
-            background: var(--border-color);
+            opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-            opacity: 0.7;
         }
 
-        button::after {
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 320px;
+            padding: 24px;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .preview-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .help-section {
+            width: 300px;
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 20px;
+            position: sticky;
+            top: 24px;
+        }
+
+        .img-comp-container {
+            position: relative;
+            max-width: 1200px;
+            width: 100%;
+            background: var(--surface-color);
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+
+        .img-comp-img {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .img-comp-overlay {
+            clip-path: inset(0 50% 0 0);
+        }
+
+        .img-comp-img img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: var(--bg-color);
+        }
+
+        .img-comp-slider {
+            position: absolute;
+            z-index: 9;
+            cursor: ew-resize;
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            opacity: 0.9;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .img-comp-slider:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .img-comp-slider::before,
+        .img-comp-slider::after {
             content: '';
             position: absolute;
             top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.5);
-            opacity: 0;
-            border-radius: 100%;
-            transform: scale(1, 1) translate(-50%);
-            transform-origin: 50% 50%;
+            width: 2px;
+            height: 16px;
+            background: white;
+            transform: translateY(-50%);
         }
 
-        button:focus:not(:active)::after {
-            animation: ripple 1s ease-out;
+        .img-comp-slider::before {
+            left: 14px;
         }
 
-        @keyframes ripple {
-            0% {
-                transform: scale(0, 0);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(100, 100);
-                opacity: 0;
-            }
+        .img-comp-slider::after {
+            right: 14px;
         }
 
-        #imageComparison {
-            margin-top: 30px;
+        .image-label {
+            position: absolute;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            pointer-events: none;
+        }
+
+        .label-original {
+            top: 16px;
+            left: 16px;
+        }
+
+        .label-processed {
+            top: 16px;
+            right: 16px;
+        }
+
+        .image-preview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            justify-content: center;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
         }
 
-        .image-container {
-            background: var(--tertiary-bg);
+        .preview-card {
+            background: var(--surface-color);
             border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 16/9;
         }
 
-        .image-container:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-
-        .image-container img {
-            max-width: 100%;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        .image-container img:hover {
-            border-color: var(--accent-color);
-        }
-
-        .image-container p {
-            margin-top: 10px;
-            font-size: 1em;
-            color: var(--primary-text);
+        .preview-card h3 {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 500;
         }
 
-        #progress {
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: var(--secondary-text);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            min-height: 24px;
+        .preview-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: var(--bg-color);
         }
 
-        #progress.loading::before {
-            content: '';
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--accent-color);
-            border-top: 2px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .progress-bar {
+            height: 4px;
+            background: var(--surface-hover);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 16px 0;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-color);
+            width: 0%;
+            transition: width 0.3s ease;
         }
 
-        #downloadSection {
-            margin-top: 20px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease;
-        }
-
-        #downloadSection.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        canvas {
-            display: none;
-        }
-
-        .tooltip {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            cursor: help;
-            margin-left: 5px;
-            color: var(--secondary-text);
-        }
-
-        .tooltip::before {
-            content: '?';
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 1px solid currentColor;
-            font-size: 12px;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 220px;
-            background: var(--primary-bg);
-            color: var(--primary-text);
+        .status-message {
+            color: var(--text-secondary);
+            font-size: 14px;
             text-align: center;
-            padding: 10px;
-            border-radius: 6px;
-            position: absolute;
-            z-index: 1;
-            bottom: 130%;
-            left: 50%;
-            margin-left: -110px;
-            opacity: 0;
-            transition: all 0.3s ease;
-            font-size: 0.85em;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border-color);
+            margin: 16px 0;
         }
 
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-            transform: translateY(-5px);
+        .download-section {
+            margin-top: 24px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 24px;
         }
 
-        .settings-group {
-            background: var(--tertiary-bg);
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        .download-section button {
+            background: var(--success-color);
         }
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-            gap: 12px;
+        .download-section button:hover {
+            background: var(--success-color);
+            opacity: 0.9;
         }
 
-        .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--accent-color);
-            cursor: pointer;
+        @media (max-width: 1200px) {
+            .image-preview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .help-section {
+                display: none;
+            }
         }
 
         @media (max-width: 768px) {
-            body {
-                padding: 15px;
+            .app {
+                flex-direction: column;
             }
 
-            .container {
-                padding: 20px;
+            .sidebar {
+                width: 100%;
+                position: static;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
             }
 
-            .settings-group {
-                padding: 15px;
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+                flex-direction: column;
             }
 
-            button {
+            .preview-section {
                 width: 100%;
             }
-        }
 
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation: none !important;
-                transition: none !important;
+            .help-section {
+                width: 100%;
+                position: static;
+                margin-top: 24px;
+            }
+
+            .img-comp-container {
+                aspect-ratio: 4/3;
             }
         }
 
-        @media (prefers-color-scheme: light) {
-            :root {
-                --primary-bg: #f5f5f5;
-                --secondary-bg: #ffffff;
-                --tertiary-bg: #f0f0f0;
-                --border-color: #e0e0e0;
-                --primary-text: #333333;
-                --secondary-text: #666666;
-            }
+        .help-content {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .help-step {
+            margin-bottom: 16px;
+        }
+
+        .help-step h4 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .help-step p {
+            margin-bottom: 8px;
+        }
+
+        .help-step ul, .help-tips ul {
+            list-style-position: inside;
+            padding-left: 8px;
+        }
+
+        .help-step li, .help-tips li {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .help-tips {
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 16px;
+        }
+
+        .help-tips h4 {
+            color: var(--accent-color);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .advanced-settings-toggle {
+            color: var(--accent-color);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            user-select: none;
+        }
+
+        .advanced-settings-toggle::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .advanced-settings-toggle.open::after {
+            transform: rotate(180deg);
+        }
+
+        .advanced-settings {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .advanced-settings.open {
+            display: block;
+        }
+
+        .advanced-settings h4 {
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .advanced-settings .input-group {
+            margin-bottom: 12px;
+        }
+
+        .advanced-settings .description {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Color Splitter</h1>
-        <p class="subtitle">Split your images into color layers effortlessly.</p>
+    <div class="app">
+        <aside class="sidebar">
+            <div>
+                <h1 class="logo">Color Splitter</h1>
+                <p class="subtitle">Extract and separate colors from your images</p>
+            </div>
 
-        <div class="input-group">
-            <label for="imageInput">Upload Your Image:</label>
-            <input type="file" id="imageInput" accept="image/*">
-        </div>
+            <div class="settings-section">
+                <div class="input-group">
+                    <label for="imageInput" class="file-input-button">Put your file here</label>
+                    <input type="file" id="imageInput" accept="image/*">
+                </div>
+            </div>
 
-        <div class="settings-group">
-            <h3>Settings</h3>
-            <div class="input-group">
-                <label for="numColors">Colors to Extract <span class="tooltip"><span class="tooltiptext">Number of unique colors to extract from the image.</span></span></label>
-                <input type="number" id="numColors" value="16" min="1" max="1000">
-            </div>
-            <div class="input-group">
-                <label for="minRegionSize">Remove Stray Pixels <span class="tooltip"><span class="tooltiptext">Minimum pixel group size to keep; smaller regions are removed.</span></span></label>
-                <input type="range" id="minRegionSize" min="0" max="100" value="0" step="1">
-                <span id="minRegionValue">0</span>
-            </div>
-            <div class="input-group">
-                <label for="colorSimilarityThreshold">Merge Similar Colors <span class="tooltip"><span class="tooltiptext">Threshold for merging similar colors; higher values group more shades.</span></span></label>
-                <input type="range" id="colorSimilarityThreshold" min="0" max="100" value="15" step="1">
-                <span id="colorSimilarityValue">15</span>
-            </div>
-            <div class="input-group">
-                <label for="outputSize">Output Size <span class="tooltip"><span class="tooltiptext">Output image dimensions in pixels.</span></span></label>
-                <input type="number" id="outputSize" value="702" min="1" max="2000">
-            </div>
-            <div class="input-group checkbox-group">
-                <input type="checkbox" id="stretchImage" checked>
-                <label for="stretchImage">Stretch Image <span class="tooltip"><span class="tooltiptext">Stretch to fit output size; uncheck to crop instead.</span></span></label>
-            </div>
-        </div>
+            <div class="settings-section">
+                <h3>Processing Settings</h3>
+                <div class="input-group">
+                    <label for="numColors">Amount of Colors</label>
+                    <input type="number" id="numColors" value="16" min="1" max="1000">
+                </div>
 
-        <button id="processBtn" onclick="processImage()">Split Colors Now</button>
-        <div id="progress"></div>
-        <div id="imageComparison">
-            <div class="image-container">
-                <img id="originalImg" src="" alt="Original Image" style="display: none;">
-                <p>Original Image</p>
+                <div class="input-group">
+                    <label for="minRegionSize">Remove Stray Pixels</label>
+                    <input type="range" id="minRegionSize" min="0" max="100" value="0" step="1">
+                    <div class="range-value" id="minRegionValue">0</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="outputSize">Output Size</label>
+                    <input type="number" id="outputSize" value="702" min="1" max="2000">
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="stretchImage" checked> Stretch Image
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="useEnhancedProcessing" checked> Use LAB Color Space
+                    </label>
+                    <div class="range-value" style="font-size: 12px; margin-top: 4px;">
+                        Uses LAB color space and bilateral filtering which sometimes gives better results, if it doesn't give good results you can change the settings below
+                    </div>
+                </div>
+
+                <div class="advanced-settings-toggle">Advanced LAB Settings</div>
+                <div class="advanced-settings">
+                    <h4>LAB Color Space Parameters</h4>
+                    
+                    <div class="input-group">
+                        <label for="luminanceWeight">Luminance Weight</label>
+                        <input type="range" id="luminanceWeight" min="0.5" max="3" value="2.0" step="0.1">
+                        <div class="range-value" id="luminanceWeightValue">2.0</div>
+                        <div class="description">Controls the importance of brightness differences. Higher values preserve more brightness variations.</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="chromaWeight">Chroma Weight</label>
+                        <input type="range" id="chromaWeight" min="0.5" max="2" value="1.5" step="0.1">
+                        <div class="range-value" id="chromaWeightValue">1.5</div>
+                        <div class="description">Controls the importance of color saturation. Higher values preserve more vivid colors.</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="spatialSigma">Spatial Sigma</label>
+                        <input type="range" id="spatialSigma" min="1" max="10" value="3" step="0.5">
+                        <div class="range-value" id="spatialSigmaValue">3.0</div>
+                        <div class="description">Controls the spatial smoothing radius. Higher values blend colors over larger areas.</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="rangeSigma">Range Sigma</label>
+                        <input type="range" id="rangeSigma" min="10" max="150" value="30" step="5">
+                        <div class="range-value" id="rangeSigmaValue">30</div>
+                        <div class="description">Controls the color difference threshold. Higher values merge more different colors.</div>
+                    </div>
+                </div>
+
+                <button id="processBtn" onclick="processImage()">Process Image</button>
+                <div id="progress" class="status-message"></div>
             </div>
-            <div class="image-container">
-                <img id="previewImg" src="" alt="Processed Image" style="display: none;">
-                <p>Processed Image</p>
+        </aside>
+
+        <main class="main-content">
+            <div class="preview-section">
+                <div class="img-comp-container">
+                    <div class="img-comp-img">
+                        <span class="image-label label-original">Original</span>
+                        <img id="originalImg" alt="Original Image">
+                    </div>
+                    <div class="img-comp-img img-comp-overlay">
+                        <span class="image-label label-processed">Processed</span>
+                        <img id="previewImg" alt="Processed Image">
+                    </div>
+                </div>
             </div>
-        </div>
-        <div id="downloadSection"></div>
+
+            <div class="help-section">
+                <h3>How to Use</h3>
+                <div class="help-content">
+                    <div class="help-step">
+                        <h4>1. Upload an Image</h4>
+                        <p>Click "Put your file here" and select any image file from your computer.</p>
+                    </div>
+
+                    <div class="help-step">
+                        <h4>2. Adjust Settings</h4>
+                        <ul>
+                            <li><strong>Amount of Colors:</strong> Higher numbers give more colors</li>
+                            <li><strong>Remove Stray Pixels:</strong> Higher values clean up noise but may remove detail</li>
+                            <li><strong>Output Size:</strong> Sets the size of output images</li>
+                            <li><strong>Stretch Image:</strong> Stretches to fill square output when checked</li>
+                            <li><strong>LAB Color Space:</strong> Recommended for better color separation for some images</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-step">
+                        <h4>3. Process & Compare</h4>
+                        <p>Click "Process Image" and use the slider to compare original and processed results.</p>
+                    </div>
+
+                    <div class="help-step">
+                        <h4>4. Download Results</h4>
+                        <p>After processing completes, click the download button below to get your color layers.</p>
+                        <div id="downloadSection" class="download-section"></div>
+                    </div>
+
+                    <div class="help-tips">
+                        <h4>Tips for Best Results</h4>
+                        <ul>
+                            <li>Start with 15-30 colors for most images</li>
+                            <li>Use more colors if you want more detail</li>
+                            <li>Increase "Remove Stray Pixels" to clean up noise, Recommended is 3-5</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script>
-        // Helper function to get elements by ID
         const $ = (id) => document.getElementById(id);
 
-        // Simple seeded PRNG (Mulberry32) for consistent results
         function seededRandom(seed) {
             let t = seed += 0x6D2B79F5;
             t = Math.imul(t ^ t >>> 15, t | 1);
@@ -492,63 +702,201 @@
             return ((t ^ t >>> 14) >>> 0) / 4294967296;
         }
 
-        // Seed for consistency
         let seed = 123456789;
 
-        // Input event listeners for real-time updates
-        $('minRegionSize').addEventListener('input', () => $('minRegionValue').textContent = $('minRegionSize').value);
-        $('colorSimilarityThreshold').addEventListener('input', () => $('colorSimilarityValue').textContent = $('colorSimilarityThreshold').value);
+        $('minRegionSize').addEventListener('input', () => {
+            $('minRegionValue').textContent = $('minRegionSize').value;
+            updateSliderStyle($('minRegionSize'));
+        });
 
-        // Handle image upload and preview
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSliderStyle($('minRegionSize'));
+            updateSliderStyle($('luminanceWeight'));
+            updateSliderStyle($('chromaWeight'));
+            updateSliderStyle($('spatialSigma'));
+            updateSliderStyle($('rangeSigma'));
+        });
+
+        function updateSliderStyle(slider) {
+            const min = parseFloat(slider.min);
+            const max = parseFloat(slider.max);
+            const val = parseFloat(slider.value);
+            const percentage = ((val - min) / (max - min)) * 100;
+            slider.style.setProperty('--slider-position', `${percentage}%`);
+        }
+
+        ['luminanceWeight', 'chromaWeight', 'spatialSigma', 'rangeSigma'].forEach(id => {
+            const input = $(id);
+            const valueDisplay = $(`${id}Value`);
+            input.addEventListener('input', () => {
+                valueDisplay.textContent = parseFloat(input.value).toFixed(1);
+                updateSliderStyle(input);
+            });
+        });
+
         $('imageInput').addEventListener('change', () => {
             const fileInput = $('imageInput');
             const originalImg = $('originalImg');
-            
+
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
-                
-                // Validate file type
+
                 if (!file.type.startsWith('image/')) {
                     alert('Please upload an image file.');
                     fileInput.value = '';
                     return;
                 }
 
-                // Create object URL and update preview
                 const objectUrl = URL.createObjectURL(file);
                 originalImg.src = objectUrl;
-                originalImg.style.display = 'block';
-                
-                // Reset UI elements
-                $('previewImg').style.display = 'none';
+
+                $('previewImg').src = '';
                 $('downloadSection').innerHTML = '';
                 $('progress').innerHTML = '';
                 $('downloadSection').classList.remove('visible');
-                
-                // Clean up object URL when image loads
-                originalImg.onload = () => URL.revokeObjectURL(objectUrl);
-            } else {
-                originalImg.style.display = 'none';
+
+                originalImg.onload = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    initComparisons();
+                };
             }
         });
 
-        // Calculate Euclidean distance between colors
-        function distance(a, b) {
-            return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
+        function distance(a, b, useLabWeights = false) {
+            if (!useLabWeights) {
+                return Math.sqrt(
+                    (a[0] - b[0]) ** 2 + 
+                    (a[1] - b[1]) ** 2 + 
+                    (a[2] - b[2]) ** 2
+                );
+            }
+
+            const params = getCustomLabParams();
+            return Math.sqrt(
+                (params.luminanceWeight * (a[0] - b[0])) ** 2 + 
+                (params.chromaWeight * (a[1] - b[1])) ** 2 + 
+                (params.chromaWeight * (a[2] - b[2])) ** 2
+            );
         }
 
-        // K-means++ initialization
+        function rgbToLab(r, g, b) {
+            r = r / 255;
+            g = g / 255;
+            b = b / 255;
+
+            r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+            g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+            b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+
+            let x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
+            let y = (r * 0.2126 + g * 0.7152 + b * 0.0722);
+            let z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+
+            x = x > 0.008856 ? Math.pow(x, 1/3) : (7.787 * x) + 16/116;
+            y = y > 0.008856 ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
+            z = z > 0.008856 ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
+
+            return [
+                (116 * y) - 16, // L (0-100)
+                500 * (x - y),   // A (-128 to 128 approx)
+                200 * (y - z)    // B (-128 to 128 approx)
+            ];
+        }
+
+        function labToRgb(l, a, b) {
+            let y = (l + 16) / 116;
+            let x = a / 500 + y;
+            let z = y - b / 200;
+
+            let x3 = x * x * x;
+            let y3 = y * y * y;
+            let z3 = z * z * z;
+
+            x = x3 > 0.008856 ? x3 : (x - 16/116) / 7.787;
+            y = y3 > 0.008856 ? y3 : (y - 16/116) / 7.787;
+            z = z3 > 0.008856 ? z3 : (z - 16/116) / 7.787;
+
+            x *= 0.95047;
+            z *= 1.08883;
+
+            let r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+            let g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+            let b_ = x * 0.0557 + y * -0.2040 + z * 1.0570;
+
+            r = r > 0.0031308 ? (1.055 * Math.pow(r, 1/2.4) - 0.055) : 12.92 * r;
+            g = g > 0.0031308 ? (1.055 * Math.pow(g, 1/2.4) - 0.055) : 12.92 * g;
+            b_ = b_ > 0.0031308 ? (1.055 * Math.pow(b_, 1/2.4) - 0.055) : 12.92 * b_;
+
+            return [
+                Math.max(0, Math.min(255, Math.round(r * 255))),
+                Math.max(0, Math.min(255, Math.round(g * 255))),
+                Math.max(0, Math.min(255, Math.round(b_ * 255)))
+            ];
+        }
+
+        function applyFastBilateralFilter(pixels, width, height, spatialSigma, rangeSigma) {
+            const filtered = new Uint8ClampedArray(pixels);
+            const radius = Math.min(2, Math.ceil(spatialSigma));
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = (y * width + x) * 4;
+                    let rSum = 0, gSum = 0, bSum = 0, weightSum = 0;
+                    const center = [pixels[idx], pixels[idx + 1], pixels[idx + 2]];
+
+                    for (let dy = -radius; dy <= radius; dy++) {
+                        for (let dx = -radius; dx <= radius; dx++) {
+                            const nx = x + dx, ny = y + dy;
+                            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                const nIdx = (ny * width + nx) * 4;
+                                const neighbor = [pixels[nIdx], pixels[nIdx + 1], pixels[nIdx + 2]];
+                                const spatialDist = dx * dx + dy * dy;
+                                const colorDist = distance(center, neighbor);
+                                const weight = Math.exp(-spatialDist / (2 * spatialSigma * spatialSigma) - 
+                                                        colorDist * colorDist / (2 * rangeSigma * rangeSigma));
+                                rSum += neighbor[0] * weight;
+                                gSum += neighbor[1] * weight;
+                                bSum += neighbor[2] * weight;
+                                weightSum += weight;
+                            }
+                        }
+                    }
+
+                    filtered[idx] = rSum / weightSum;
+                    filtered[idx + 1] = gSum / weightSum;
+                    filtered[idx + 2] = bSum / weightSum;
+                    filtered[idx + 3] = pixels[idx + 3];
+                }
+            }
+            return filtered;
+        }
+
         function kMeansPlusPlus(pixels, k) {
             const centroids = [];
-            // Use seeded random for the first centroid
-            centroids.push({ color: [...pixels[Math.floor(seededRandom(seed++) * pixels.length)]], count: 0 });
+            const colorFrequency = new Map();
 
-            // Choose remaining centroids with probability proportional to distance squared
-            for (let i = 1; i < k * 1.5; i++) {
-                const distances = pixels.map(p => Math.min(...centroids.map(c => distance(p, c.color))) ** 2);
+            pixels.forEach(pixel => {
+                const quantized = pixel.map(v => Math.round(v / 8) * 8);
+                const key = quantized.join(',');
+                colorFrequency.set(key, (colorFrequency.get(key) || 0) + 1);
+            });
+
+            const sortedColors = Array.from(colorFrequency.entries())
+                .sort((a, b) => b[1] - a[1])
+                .map(([key]) => key.split(',').map(Number));
+
+            centroids.push({ color: [...sortedColors[0]], count: 0 });
+
+            for (let i = 1; i < k; i++) {
+                const distances = pixels.map(p => {
+                    const minDist = Math.min(...centroids.map(c => distance(p, c.color)));
+                    const prominence = colorFrequency.get(p.map(v => Math.round(v / 8) * 8).join(',')) || 1;
+                    return (minDist ** 2) * Math.log(prominence);
+                });
+
                 const total = distances.reduce((a, b) => a + b, 0);
                 let sum = 0, rand = seededRandom(seed++) * total;
-                
+
                 for (let j = 0; j < distances.length; j++) {
                     sum += distances[j];
                     if (sum >= rand) {
@@ -560,125 +908,106 @@
             return centroids;
         }
 
-        // K-means clustering algorithm
-        function kMeans(pixels, k, maxIterations = 15) {
-            let centroids = kMeansPlusPlus(pixels, k);
+        function kMeans(pixels, k, maxIterations = 10) {
+            let centroids = kMeansPlusPlus(pixels, k).map(c => ({
+                color: c.color,
+                lab: $('useEnhancedProcessing').checked ? rgbToLab(...c.color) : null,
+                count: 0
+            }));
             let clusters;
+            let lastError = Infinity;
+            let sameErrorCount = 0;
 
             for (let iter = 0; iter < maxIterations; iter++) {
-                // Assign pixels to nearest centroid
-                clusters = pixels.map(pixel => {
+                clusters = new Uint8Array(pixels.length);
+                for (let i = 0; i < pixels.length; i++) {
                     let minDist = Infinity, clusterIdx = 0;
-                    centroids.forEach((c, idx) => {
-                        const dist = distance(pixel, c.color);
+                    const pixelLab = $('useEnhancedProcessing').checked ? rgbToLab(...pixels[i]) : pixels[i];
+                    for (let j = 0; j < centroids.length; j++) {
+                        const dist = distance(pixelLab, $('useEnhancedProcessing').checked ? centroids[j].lab : centroids[j].color, $('useEnhancedProcessing').checked);
                         if (dist < minDist) {
                             minDist = dist;
-                            clusterIdx = idx;
+                            clusterIdx = j;
                         }
-                    });
-                    return clusterIdx;
-                });
+                    }
+                    clusters[i] = clusterIdx;
+                }
 
-                // Update centroids
-                const oldCentroids = centroids.map(c => ({ ...c }));
-                centroids = centroids.map(() => ({ color: [0, 0, 0], count: 0 }));
-                
-                pixels.forEach((pixel, i) => {
+                const newCentroids = centroids.map(() => ({ color: [0, 0, 0], lab: [0, 0, 0], count: 0 }));
+                for (let i = 0; i < pixels.length; i++) {
                     const c = clusters[i];
-                    centroids[c].color[0] += pixel[0];
-                    centroids[c].color[1] += pixel[1];
-                    centroids[c].color[2] += pixel[2];
-                    centroids[c].count += 1;
-                });
+                    newCentroids[c].color[0] += pixels[i][0];
+                    newCentroids[c].color[1] += pixels[i][1];
+                    newCentroids[c].color[2] += pixels[i][2];
+                    newCentroids[c].count++;
+                    if ($('useEnhancedProcessing').checked) {
+                        const lab = rgbToLab(...pixels[i]);
+                        newCentroids[c].lab[0] += lab[0];
+                        newCentroids[c].lab[1] += lab[1];
+                        newCentroids[c].lab[2] += lab[2];
+                    }
+                }
 
-                centroids = centroids.map(c => ({
+                centroids = newCentroids.map(c => ({
                     color: c.count ? c.color.map(v => Math.round(v / c.count)) : [0, 0, 0],
+                    lab: c.count && $('useEnhancedProcessing').checked ? c.lab.map(v => v / c.count) : null,
                     count: c.count
                 }));
 
-                // Check for convergence
-                if (centroids.every((c, i) => distance(c.color, oldCentroids[i].color) < 1)) break;
+                const totalError = pixels.reduce((sum, pixel, i) => {
+                    const c = clusters[i];
+                    return sum + distance($('useEnhancedProcessing').checked ? rgbToLab(...pixel) : pixel, 
+                                        $('useEnhancedProcessing').checked ? centroids[c].lab : centroids[c].color, 
+                                        $('useEnhancedProcessing').checked);
+                }, 0);
+
+                if (Math.abs(totalError - lastError) < 1) {
+                    sameErrorCount++;
+                    if (sameErrorCount >= 2) break;
+                } else {
+                    sameErrorCount = 0;
+                }
+                lastError = totalError;
             }
 
             return { centroids, clusters };
         }
 
-        // Merge similar colors based on threshold
-        function mergeSimilarColors(centroids, threshold) {
-            if (!threshold) return centroids.map(c => c.color);
-            
-            const uniqueColors = [];
-            const used = new Set();
-
-            for (let i = 0; i < centroids.length; i++) {
-                if (used.has(i)) continue;
-                
-                const color1 = centroids[i].color;
-                let mergedColor = [...color1], mergedCount = centroids[i].count;
-
-                for (let j = i + 1; j < centroids.length; j++) {
-                    if (used.has(j)) continue;
-                    
-                    const color2 = centroids[j].color;
-                    if (distance(color1, color2) <= threshold) {
-                        mergedColor = mergedColor.map((v, k) => 
-                            Math.round((v * mergedCount + color2[k] * centroids[j].count) / (mergedCount + centroids[j].count))
-                        );
-                        mergedCount += centroids[j].count;
-                        used.add(j);
-                    }
-                }
-
-                uniqueColors.push(mergedColor);
-                used.add(i);
-            }
-
-            // Sort by frequency
-            return uniqueColors.sort((a, b) => {
-                const countA = centroids.find(c => c.color.every((v, i) => v === a[i]))?.count || 0;
-                const countB = centroids.find(c => c.color.every((v, i) => v === b[i]))?.count || 0;
-                return countB - countA;
-            });
-        }
-
-        // Clean up small regions using flood fill
         function cleanSmallRegions(colorMap, width, height, topCentroids, minSize) {
             if (!minSize) return colorMap;
-            
+
             const visited = new Uint8Array(width * height);
             const newColorMap = new Uint8ClampedArray(colorMap);
-            
+
             function floodFill(x, y, targetColor, region) {
                 const stack = [[x, y]];
                 while (stack.length) {
                     const [cx, cy] = stack.pop();
                     const idx = (cy * width + cx) * 4;
-                    
+
                     if (cx < 0 || cx >= width || cy < 0 || cy >= height || visited[cy * width + cx] ||
                         (colorMap[idx] !== targetColor[0] || colorMap[idx + 1] !== targetColor[1] || colorMap[idx + 2] !== targetColor[2])) {
                         continue;
                     }
-                    
+
                     visited[cy * width + cx] = 1;
                     region.push([cx, cy]);
                     stack.push([cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]);
                 }
             }
 
-            // Process each pixel
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
                     if (!visited[y * width + x]) {
                         const idx = (y * width + x) * 4;
                         const color = [colorMap[idx], colorMap[idx + 1], colorMap[idx + 2]];
                         const region = [];
-                        
+
                         floodFill(x, y, color, region);
-                        
+
                         if (region.length < minSize) {
                             let nearestColor = topCentroids[0], minDist = Infinity;
-                            
-                            // Find nearest color from neighbors
+
                             for (const [rx, ry] of region) {
                                 for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
                                     const nx = rx + dx, ny = ry + dy;
@@ -693,8 +1022,7 @@
                                     }
                                 }
                             }
-                            
-                            // Replace small region with nearest color
+
                             for (const [rx, ry] of region) {
                                 const rIdx = (ry * width + rx) * 4;
                                 newColorMap[rIdx] = nearestColor[0];
@@ -706,91 +1034,114 @@
                     }
                 }
             }
-            
+
             return newColorMap;
         }
 
-        // Clean up stray pixels in individual layers
-        function cleanStrayPixels(layerData, width, height, minSize = 5) {
+        function cleanStrayPixels(layerData, width, height, minSize = 3) {
             const visited = new Uint8Array(width * height);
             const newLayerData = new Uint8ClampedArray(layerData);
-            
+            const regions = [];
+
             function floodFill(x, y, region) {
                 const stack = [[x, y]];
                 while (stack.length) {
                     const [cx, cy] = stack.pop();
                     const idx = (cy * width + cx) * 4;
-                    
+
                     if (cx < 0 || cx >= width || cy < 0 || cy >= height || visited[cy * width + cx] || !layerData[idx + 3]) {
                         continue;
                     }
-                    
+
                     visited[cy * width + cx] = 1;
                     region.push([cx, cy]);
                     stack.push([cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]);
                 }
             }
 
-            // Process each pixel
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
                     if (!visited[y * width + x] && layerData[(y * width + x) * 4 + 3]) {
                         const region = [];
                         floodFill(x, y, region);
-                        
-                        if (region.length < minSize) {
-                            for (const [rx, ry] of region) {
-                                newLayerData[(ry * width + rx) * 4 + 3] = 0;
-                            }
+                        regions.push(region);
+                    }
+                }
+            }
+
+            regions.sort((a, b) => b.length - a.length);
+
+            if (regions.length > 0 && regions[0].length < minSize) {
+                const reallyTinySize = Math.min(minSize, 2);
+                for (let i = 1; i < regions.length; i++) {
+                    if (regions[i].length < reallyTinySize) {
+                        for (const [rx, ry] of regions[i]) {
+                            newLayerData[(ry * width + rx) * 4 + 3] = 0;
+                        }
+                    }
+                }
+            } else {
+                for (let i = 0; i < regions.length; i++) {
+                    if (regions[i].length < minSize) {
+                        for (const [rx, ry] of regions[i]) {
+                            newLayerData[(ry * width + rx) * 4 + 3] = 0;
                         }
                     }
                 }
             }
-            
+
             return newLayerData;
         }
 
-        // Handle file export with fallback
         async function exportFile(blob) {
-            if (window.showSaveFilePicker) {
-                try {
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: 'color_layers.zip',
-                        types: [{ description: 'ZIP File', accept: { 'application/zip': ['.zip'] } }]
-                    });
-                    const writable = await handle.createWritable();
-                    await writable.write(blob);
-                    await writable.close();
-                    return;
-                } catch (err) {
-                    console.error('Error saving file:', err);
-                }
+            try {
+                saveAs(blob, 'color_layers.zip');
+                setTimeout(() => {
+                    $('progress').innerHTML = 'Download started! Choose where to save the file in your browser\'s download prompt.';
+                }, 500);
+            } catch (err) {
+                console.error('Error saving file:', err);
+                $('progress').innerHTML = 'Error saving file. Please try again.';
             }
-            saveAs(blob, 'color_layers.zip');
         }
 
-        // Main processing function
+        async function downsampleImageData(imageData, factor) {
+            const width = Math.floor(imageData.width / factor);
+            const height = Math.floor(imageData.height / factor);
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = imageData.width;
+            tempCanvas.height = imageData.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.putImageData(imageData, 0, 0);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            ctx.drawImage(tempCanvas, 0, 0, width, height);
+
+            return ctx.getImageData(0, 0, width, height);
+        }
+
         async function processImage() {
             const fileInput = $('imageInput');
             const numColors = parseInt($('numColors').value) || 1;
-            const minRegionSize = parseInt($('minRegionSize').value) || 0;
-            const colorSimilarityThreshold = parseInt($('colorSimilarityThreshold').value) || 0;
             const outputSize = parseInt($('outputSize').value) || 1;
             const stretchImage = $('stretchImage').checked;
+            const useEnhancedProcessing = $('useEnhancedProcessing').checked;
             const previewImg = $('previewImg');
             const progressDiv = $('progress');
             const processBtn = $('processBtn');
             const downloadSection = $('downloadSection');
 
-            // Reset seed for consistency
             seed = 123456789;
 
-            // Disable UI during processing
             processBtn.disabled = true;
             progressDiv.classList.add('loading');
             progressDiv.innerHTML = 'Processing...';
 
-            // Validate input
             if (!fileInput.files.length) {
                 alert('Please upload an image!');
                 processBtn.disabled = false;
@@ -802,124 +1153,206 @@
             const maxColors = 1000, maxSize = 2000;
             const cappedNumColors = Math.min(numColors, maxColors);
             const cappedOutputSize = Math.min(Math.max(1, outputSize), maxSize);
-            const cappedMinRegionSize = Math.min(Math.max(0, minRegionSize), maxSize);
-            const cappedColorSimilarityThreshold = Math.min(Math.max(0, colorSimilarityThreshold), 100);
 
-            if (cappedNumColors !== numColors || cappedOutputSize !== outputSize || 
-                cappedMinRegionSize !== minRegionSize || cappedColorSimilarityThreshold !== colorSimilarityThreshold) {
-                alert('Values capped: Colors (1-1000), Size (1-2000), Region (0-2000), Similarity (0-100).');
+            const img = new Image();
+            img.src = URL.createObjectURL(fileInput.files[0]);
+            await new Promise(resolve => img.onload = resolve);
+
+            progressDiv.innerHTML = 'Initializing...';
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = cappedOutputSize;
+            canvas.height = cappedOutputSize;
+
+            const srcWidth = img.width, srcHeight = img.height;
+            let sx, sy, sWidth, sHeight;
+            if (stretchImage) {
+                [sx, sy, sWidth, sHeight] = [0, 0, srcWidth, srcHeight];
+            } else {
+                if (srcWidth > srcHeight) {
+                    [sWidth, sHeight, sx, sy] = [srcHeight, srcHeight, (srcWidth - srcHeight) / 2, 0];
+                } else {
+                    [sWidth, sHeight, sx, sy] = [srcWidth, srcWidth, 0, (srcHeight - srcWidth) / 2];
+                }
+            }
+            ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, cappedOutputSize, cappedOutputSize);
+
+            let imageData = ctx.getImageData(0, 0, cappedOutputSize, cappedOutputSize);
+            let pixels = imageData.data;
+
+            if (useEnhancedProcessing) {
+                const params = getCustomLabParams();
+                progressDiv.innerHTML = 'Applying fast filter...';
+                pixels = applyFastBilateralFilter(pixels, cappedOutputSize, cappedOutputSize, params.spatialSigma, params.rangeSigma);
+                imageData = new ImageData(pixels, cappedOutputSize, cappedOutputSize);
             }
 
-            try {
-                const img = new Image();
-                img.src = URL.createObjectURL(fileInput.files[0]);
-                img.onload = async () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = cappedOutputSize;
-                    canvas.height = cappedOutputSize;
+            progressDiv.innerHTML = 'Processing colors...';
+            const downsampleFactor = Math.max(4, Math.ceil(Math.sqrt(cappedOutputSize) / 50));
+            const downsampledData = await downsampleImageData(imageData, downsampleFactor);
 
-                    const srcWidth = img.width, srcHeight = img.height;
-                    let sx, sy, sWidth, sHeight;
-                    if (stretchImage) {
-                        [sx, sy, sWidth, sHeight] = [0, 0, srcWidth, srcHeight];
+            const downsampledPixels = Array.from({ length: downsampledData.data.length / 4 }, (_, i) => {
+                const idx = i * 4;
+                return [downsampledData.data[idx], downsampledData.data[idx + 1], downsampledData.data[idx + 2]];
+            });
+
+            progressDiv.innerHTML = 'Clustering colors...';
+            const { centroids } = kMeans(downsampledPixels, cappedNumColors);
+
+            progressDiv.innerHTML = 'Finalizing colors...';
+            const colorMap = new Uint8ClampedArray(pixels.length);
+
+            for (let i = 0; i < pixels.length / 4; i++) {
+                const idx = i * 4;
+                const pixelColor = [pixels[idx], pixels[idx + 1], pixels[idx + 2]];
+                let minDist = Infinity, nearestIdx = 0;
+                for (let j = 0; j < centroids.length; j++) {
+                    const dist = distance(pixelColor, centroids[j].color, false);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestIdx = j;
+                    }
+                }
+                const nearestColor = centroids[nearestIdx].color;
+                colorMap[idx] = nearestColor[0];
+                colorMap[idx + 1] = nearestColor[1];
+                colorMap[idx + 2] = nearestColor[2];
+                colorMap[idx + 3] = pixels[idx + 3];
+            }
+
+            let finalColorMap = colorMap;
+            const cappedMinRegionSize = parseInt($('minRegionSize').value) || 0;
+            if (cappedMinRegionSize) {
+                finalColorMap = cleanSmallRegions(colorMap, cappedOutputSize, cappedOutputSize, 
+                    centroids.map(c => c.color), cappedMinRegionSize);
+            }
+
+            ctx.putImageData(new ImageData(finalColorMap, cappedOutputSize, cappedOutputSize), 0, 0);
+            previewImg.src = canvas.toDataURL('image/png');
+
+            const zip = new JSZip();
+            centroids.forEach(color => {
+                const splitCanvas = document.createElement('canvas');
+                splitCanvas.width = cappedOutputSize;
+                splitCanvas.height = cappedOutputSize;
+                const splitCtx = splitCanvas.getContext('2d');
+                const splitData = splitCtx.createImageData(cappedOutputSize, cappedOutputSize);
+
+                const tolerance = 3;
+                for (let i = 0; i < finalColorMap.length; i += 4) {
+                    if (Math.abs(finalColorMap[i] - color.color[0]) <= tolerance && 
+                        Math.abs(finalColorMap[i + 1] - color.color[1]) <= tolerance && 
+                        Math.abs(finalColorMap[i + 2] - color.color[2]) <= tolerance) {
+                        splitData.data.set(finalColorMap.slice(i, i + 4), i);
                     } else {
-                        if (srcWidth > srcHeight) {
-                            [sWidth, sHeight, sx, sy] = [srcHeight, srcHeight, (srcWidth - srcHeight) / 2, 0];
-                        } else {
-                            [sWidth, sHeight, sx, sy] = [srcWidth, srcWidth, 0, (srcHeight - srcWidth) / 2];
-                        }
+                        splitData.data[i + 3] = 0;
                     }
-                    ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, cappedOutputSize, cappedOutputSize);
+                }
 
-                    const imageData = ctx.getImageData(0, 0, cappedOutputSize, cappedOutputSize);
-                    const pixels = imageData.data;
-                    const pixelSamples = Array.from({ length: pixels.length / 4 }, (_, i) => 
-                        [pixels[i * 4], pixels[i * 4 + 1], pixels[i * 4 + 2]]
-                    );
+                const cleanedData = cleanStrayPixels(splitData.data, cappedOutputSize, cappedOutputSize);
+                splitCtx.putImageData(new ImageData(cleanedData, cappedOutputSize, cappedOutputSize), 0, 0);
+                zip.file(`${color.color.map(v => v.toString(16).padStart(2, '0')).join('')}.png`, 
+                    splitCanvas.toDataURL('image/png').split(',')[1], { base64: true });
+            });
 
-                    const { centroids, clusters } = kMeans(pixelSamples, cappedNumColors);
-                    const counts = new Array(centroids.length).fill(0);
-                    clusters.forEach(idx => counts[idx]++);
-                    const centroidData = centroids.map((c, i) => ({ color: c.color, count: counts[i] }));
-                    centroidData.sort((a, b) => b.count - a.count);
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            downloadSection.innerHTML = '';
 
-                    let uniqueCentroids = mergeSimilarColors(centroidData, cappedColorSimilarityThreshold);
-                    if (uniqueCentroids.length > cappedNumColors) {
-                        uniqueCentroids = uniqueCentroids.slice(0, cappedNumColors);
-                    } else if (uniqueCentroids.length < cappedNumColors) {
-                        uniqueCentroids = uniqueCentroids.concat(
-                            centroidData.slice(uniqueCentroids.length, cappedNumColors).map(c => c.color)
-                        );
-                    }
-                    const topCentroids = uniqueCentroids;
+            const helpText = document.createElement('p');
+            helpText.textContent = 'Click the button below to download all color layers as separate PNG files in a ZIP file:';
+            helpText.style.marginBottom = '12px';
+            helpText.style.color = 'var(--text-secondary)';
+            downloadSection.appendChild(helpText);
 
-                    let colorMap = new Uint8ClampedArray(pixels.length);
-                    const chunkSize = 10000;
-                    for (let i = 0; i < pixels.length / 4; i += chunkSize) {
-                        const end = Math.min(i + chunkSize, pixels.length / 4);
-                        for (let j = i; j < end; j++) {
-                            const pixel = pixelSamples[j];
-                            const nearestColor = topCentroids.reduce((prev, curr) => 
-                                distance(pixel, curr) < distance(pixel, prev) ? curr : prev
-                            );
-                            const offset = j * 4;
-                            [colorMap[offset], colorMap[offset + 1], colorMap[offset + 2], colorMap[offset + 3]] = 
-                                [...nearestColor, pixels[offset + 3]];
-                        }
-                    }
+            const downloadBtn = document.createElement('button');
+            downloadBtn.textContent = 'Download Color Layers';
+            downloadBtn.onclick = () => exportFile(zipBlob);
+            downloadSection.appendChild(downloadBtn);
+            downloadSection.classList.add('visible');
 
-                    if (cappedMinRegionSize) {
-                        colorMap = cleanSmallRegions(colorMap, cappedOutputSize, cappedOutputSize, topCentroids, cappedMinRegionSize);
-                    }
-
-                    ctx.putImageData(new ImageData(colorMap, cappedOutputSize, cappedOutputSize), 0, 0);
-                    previewImg.src = canvas.toDataURL('image/png');
-                    previewImg.style.display = 'block';
-
-                    const zip = new JSZip();
-                    topCentroids.forEach(color => {
-                        const splitCanvas = document.createElement('canvas');
-                        splitCanvas.width = cappedOutputSize;
-                        splitCanvas.height = cappedOutputSize;
-                        const splitCtx = splitCanvas.getContext('2d');
-                        const splitData = splitCtx.createImageData(cappedOutputSize, cappedOutputSize);
-
-                        for (let i = 0; i < colorMap.length; i += 4) {
-                            if (colorMap[i] === color[0] && colorMap[i + 1] === color[1] && colorMap[i + 2] === color[2]) {
-                                splitData.data.set(colorMap.slice(i, i + 4), i);
-                            } else {
-                                splitData.data[i + 3] = 0;
-                            }
-                        }
-
-                        const cleanedData = cleanStrayPixels(splitData.data, cappedOutputSize, cappedOutputSize);
-                        splitCtx.putImageData(new ImageData(cleanedData, cappedOutputSize, cappedOutputSize), 0, 0);
-                        zip.file(`${color.map(v => v.toString(16).padStart(2, '0')).join('')}.png`, 
-                            splitCanvas.toDataURL('image/png').split(',')[1], { base64: true });
-                    });
-
-                    const zipBlob = await zip.generateAsync({ type: 'blob' });
-                    downloadSection.innerHTML = '';
-                    const downloadBtn = document.createElement('button');
-                    downloadBtn.textContent = 'Download Color Layers';
-                    downloadBtn.onclick = () => exportFile(zipBlob);
-                    downloadSection.appendChild(document.createElement('br'));
-                    downloadSection.appendChild(downloadBtn);
-                    downloadSection.classList.add('visible');
-
-                    progressDiv.classList.remove('loading');
-                    progressDiv.innerHTML = `Done! Generated ${topCentroids.length} color layers.`;
-                    processBtn.disabled = false;
-                };
-            } catch (err) {
-                console.error('Error processing image:', err);
-                progressDiv.classList.remove('loading');
-                progressDiv.innerHTML = 'Error processing image';
-                processBtn.disabled = false;
-            }
+            progressDiv.classList.remove('loading');
+            progressDiv.innerHTML = `Done! Generated ${centroids.length} color layers.`;
+            processBtn.disabled = false;
         }
-        </script>
-    </div>
+
+        function initComparisons() {
+            const overlays = document.getElementsByClassName("img-comp-overlay");
+            Array.from(overlays).forEach(overlay => {
+                const container = overlay.parentElement;
+                const width = container.offsetWidth;
+                const height = container.offsetHeight;
+
+                let slider = container.querySelector('.img-comp-slider');
+                if (!slider) {
+                    slider = document.createElement("DIV");
+                    slider.setAttribute("class", "img-comp-slider");
+                    container.insertBefore(slider, overlay);
+                }
+
+                const sliderWidth = slider.offsetWidth;
+                const sliderHalfWidth = sliderWidth / 2;
+
+                slider.style.left = `calc(50% - ${sliderHalfWidth}px)`;
+                overlay.style.clipPath = "inset(0 50% 0 0)";
+
+                let clicked = 0;
+
+                function slideReady(e) {
+                    e.preventDefault();
+                    clicked = 1;
+                    window.addEventListener("mousemove", slideMove);
+                    window.addEventListener("touchmove", slideMove);
+                }
+
+                function slideFinish() {
+                    clicked = 0;
+                    window.removeEventListener("mousemove", slideMove);
+                    window.removeEventListener("touchmove", slideMove);
+                }
+
+                function slideMove(e) {
+                    if (clicked === 0) return false;
+
+                    let pos = getCursorPos(e);
+                    let percentage = (pos / width) * 100;
+                    percentage = Math.min(100, Math.max(0, percentage));
+
+                    const pixelPos = (percentage / 100) * width - sliderHalfWidth;
+                    slider.style.left = `${pixelPos}px`;
+                    overlay.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
+                }
+
+                function getCursorPos(e) {
+                    const rect = container.getBoundingClientRect();
+                    let x = (e.changedTouches ? e.changedTouches[0].pageX : e.pageX) - rect.left;
+                    x = x - window.pageXOffset;
+                    return x;
+                }
+
+                slider.addEventListener("mousedown", slideReady);
+                slider.addEventListener("touchstart", slideReady);
+                window.addEventListener("mouseup", slideFinish);
+                window.addEventListener("touchend", slideFinish);
+            });
+        }
+
+        const advancedToggle = document.querySelector('.advanced-settings-toggle');
+        const advancedSettings = document.querySelector('.advanced-settings');
+
+        advancedToggle.addEventListener('click', () => {
+            advancedToggle.classList.toggle('open');
+            advancedSettings.classList.toggle('open');
+        });
+
+        function getCustomLabParams() {
+            return {
+                luminanceWeight: parseFloat($('luminanceWeight').value),
+                chromaWeight: parseFloat($('chromaWeight').value),
+                spatialSigma: parseFloat($('spatialSigma').value),
+                rangeSigma: parseFloat($('rangeSigma').value)
+            };
+        }
+    </script>
 </body>
 </html>
