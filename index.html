@@ -1071,19 +1071,49 @@
 
             regions.sort((a, b) => b.length - a.length);
 
-            if (regions.length > 0 && regions[0].length < minSize) {
-                const reallyTinySize = Math.min(minSize, 2);
-                for (let i = 1; i < regions.length; i++) {
-                    if (regions[i].length < reallyTinySize) {
-                        for (const [rx, ry] of regions[i]) {
-                            newLayerData[(ry * width + rx) * 4 + 3] = 0;
+            // Find small regions to replace
+            for (let i = 0; i < regions.length; i++) {
+                if (regions[i].length < minSize) {
+                    // For each small region, find the nearest neighboring pixel
+                    for (const [rx, ry] of regions[i]) {
+                        let nearestNeighbor = null;
+                        let minDist = Infinity;
+                        
+                        // Check surrounding pixels to find a valid neighbor
+                        for (let dy = -3; dy <= 3; dy++) {
+                            for (let dx = -3; dx <= 3; dx++) {
+                                if (dx === 0 && dy === 0) continue;
+                                
+                                const nx = rx + dx;
+                                const ny = ry + dy;
+                                
+                                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                    const nIdx = (ny * width + nx) * 4;
+                                    
+                                    // Only consider pixels that are visible and not part of this small region
+                                    if (layerData[nIdx + 3] && !regions[i].some(([px, py]) => px === nx && py === ny)) {
+                                        const dist = dx * dx + dy * dy;
+                                        if (dist < minDist) {
+                                            minDist = dist;
+                                            nearestNeighbor = [nx, ny];
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    }
-                }
-            } else {
-                for (let i = 0; i < regions.length; i++) {
-                    if (regions[i].length < minSize) {
-                        for (const [rx, ry] of regions[i]) {
+                        
+                        // If we found a neighbor, copy its color
+                        if (nearestNeighbor) {
+                            const [nx, ny] = nearestNeighbor;
+                            const nIdx = (ny * width + nx) * 4;
+                            const rIdx = (ry * width + rx) * 4;
+                            
+                            newLayerData[rIdx] = layerData[nIdx];
+                            newLayerData[rIdx + 1] = layerData[nIdx + 1];
+                            newLayerData[rIdx + 2] = layerData[nIdx + 2];
+                            // Keep alpha as is
+                        } else {
+                            // If no neighbor found, make transparent
                             newLayerData[(ry * width + rx) * 4 + 3] = 0;
                         }
                     }
@@ -1092,6 +1122,7 @@
 
             return newLayerData;
         }
+
 
         async function exportFile(blob) {
             try {
@@ -1356,3 +1387,5 @@
     </script>
 </body>
 </html>
+
+
