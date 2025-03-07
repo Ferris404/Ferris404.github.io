@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const htmlElement = document.documentElement;
     
     // Check for saved theme preference and apply it
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     htmlElement.setAttribute('data-theme', savedTheme);
     
     // Update icon to match current theme
