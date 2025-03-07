@@ -3,807 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blender Shortcuts</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Ferris404's Portfolio</title>
+    <style>
+        :root {
+            /* Light theme (default) */
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --header-bg: linear-gradient(135deg, #263238 0%, #37474f 100%);
+            --header-text: white;
+            --card-bg: white;
+            --card-hover-bg: #f5f5f5;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --accent-color: #263238;
+            --link-color: #1a73e8;
+        }
+
+        [data-theme="dark"] {
+            /* Dark theme */
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --header-bg: linear-gradient(135deg, #000000 0%, #212121 100%);
+            --header-text: #f5f5f5;
+            --card-bg: #1e1e1e;
+            --card-hover-bg: #2d2d2d;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --accent-color: #90caf9;
+            --link-color: #90caf9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--accent-color);
+            color: var(--header-text);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px var(--shadow-color);
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .project-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        .project-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .project-card p {
+            margin-bottom: 15px;
+        }
+
+        .project-card a {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .project-card a:hover {
+            background-color: var(--link-color);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .project-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>Blender Shortcuts</h1>
-        <p>My list of keyboard shortcuts for Blender</p>
-        <button id="important-shortcuts-btn" class="important-shortcuts-btn">
-            <i class="fas fa-star"></i> Important Shortcuts
-        </button>
+        <h1>Ferris404's Portfolio</h1>
+        <p>Welcome to my personal website. Explore my projects and resources below.</p>
     </header>
 
-    <!-- Important shortcuts panel -->
-    <div id="important-shortcuts-panel" class="important-shortcuts-panel">
-        <div class="panel-header">
-            <h2>Most Important Shortcuts</h2>
-            <button id="close-panel-btn" class="close-panel-btn">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="panel-content">
-            <div class="shortcuts-category">
-                <h3>Transformation</h3>
-                <div class="shortcut-grid">
-                    <div class="shortcut-item">
-                        <div><kbd>G</kbd></div>
-                        <span>Grab</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>R</kbd></div>
-                        <span>Rotate</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>S</kbd></div>
-                        <span>Scale</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd><span class="context">(while transforming)</span>
-                        </div>
-                        <span>Constrain to axis</span>
-                    </div>
-                </div>
+    <main>
+        <div class="project-grid">
+            <div class="project-card">
+                <h2>Blender Shortcuts</h2>
+                <p>A comprehensive collection of keyboard shortcuts for Blender, organized by categories for easy reference.</p>
+                <a href="blendershortcuts/">View Project</a>
             </div>
             
-            <div class="shortcuts-category">
-                <h3>Navigation</h3>
-                <div class="shortcut-grid">
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>Middle Mouse</kbd><span class="context">(Hold)</span>
-                        </div>
-                        <span>Orbit</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>Shift</kbd> + <kbd>Middle Mouse</kbd><span class="context">(Hold)</span>
-                        </div>
-                        <span>Pan</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>Scroll Wheel</kbd></div>
-                        <span>Zoom</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>Numpad 1</kbd></div>
-                        <span>Front view</span>
-                    </div>
-                </div>
+            <!-- You can add more project cards here in the future -->
+            <div class="project-card">
+                <h2>Future Project</h2>
+                <p>This is a placeholder for your future projects. Replace with your actual content when ready.</p>
+                <a href="#">Coming Soon</a>
             </div>
             
-            <div class="shortcuts-category">
-                <h3>Modeling</h3>
-                <div class="shortcut-grid">
-                    <div class="shortcut-item">
-                        <div><kbd>Tab</kbd></div>
-                        <span>Toggle Edit/Object mode</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>Shift</kbd> + <kbd>A</kbd>
-                        </div>
-                        <span>Add menu</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>E</kbd></div>
-                        <span>Extrude</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>I</kbd></div>
-                        <span>Inset</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="shortcuts-category">
-                <h3>Selection & Editing</h3>
-                <div class="shortcut-grid">
-                    <div class="shortcut-item">
-                        <div><kbd>A</kbd></div>
-                        <span>Select All</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>A</kbd> + <kbd>A</kbd><span class="context">(Double Tap)</span>
-                        </div>
-                        <span>Deselect All</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>B</kbd>
-                        </div>
-                        <span>Box Select</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>C</kbd>
-                        </div>
-                        <span>Circle Select</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>1</kbd></div>
-                        <span>Vertex select mode</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>2</kbd></div>
-                        <span>Edge select mode</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>3</kbd></div>
-                        <span>Face select mode</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>Shift</kbd> + <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd>
-                        </div>
-                        <span>Toggle Component select mode</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="shortcuts-category">
-                <h3>Editing</h3>
-                <div class="shortcut-grid">
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>Shift</kbd> + <kbd>D</kbd>
-                        </div>
-                        <span>Duplicate</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>Ctrl</kbd> + <kbd>Z</kbd>
-                        </div>
-                        <span>Undo</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div><kbd>X</kbd>/<kbd>Delete</kbd></div>
-                        <span>Delete</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <div>
-                            <kbd>Ctrl</kbd> + <kbd>J</kbd>
-                        </div>
-                        <span>Join Objects</span>
-                    </div>
-                </div>
+            <div class="project-card">
+                <h2>Future Project</h2>
+                <p>This is a placeholder for your future projects. Replace with your actual content when ready.</p>
+                <a href="#">Coming Soon</a>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Theme toggle button -->
     <div class="theme-toggle" id="theme-toggle" title="Toggle Dark Mode">
         <i class="fas fa-moon"></i>
     </div>
 
-    <nav id="category-nav">
-        <ul>
-            <li><a href="#general">General</a></li>
-            <li><a href="#navigation">Navigation</a></li>
-            <li><a href="#numpads">Numpads</a></li>
-            <li><a href="#selection">Selection</a></li>
-            <li><a href="#3d-view">3D View</a></li>
-            <li><a href="#object-mode">Object Mode</a></li>
-            <li><a href="#edit-mode">Edit Mode</a></li>
-            <li><a href="#animation-editors">Animation Editors</a></li>
-            <li><a href="#node-editor">Node Editor</a></li>
-        </ul>
-    </nav>
-
-    <main>
-        <section id="general" class="shortcut-section">
-            <h2>General</h2>
-            <div class="shortcut-grid">
-                <div class="shortcut-item">
-                    <div><kbd>G</kbd></div>
-                    <span>Grab</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>R</kbd></div>
-                    <span>Rotate</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>S</kbd></div>
-                    <span>Scale</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>B</kbd><span class="context">(while transforming)</span>
-                    </div>
-                    <span>Set snap base</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd><span class="context">(while transforming)</span>
-                    </div>
-                    <span>Constrain to axis</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd>
-                    </div>
-                    <span>Constrain to plane</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Middle click</kbd><span class="context">(while transforming)</span>
-                    </div>
-                    <span>Interactive constrain to axis</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>D</kbd>
-                    </div>
-                    <span>Duplicate</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Alt</kbd> + <kbd>D</kbd>
-                    </div>
-                    <span>Duplicate linked</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>H</kbd></div>
-                    <span>Hide</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Alt</kbd> + <kbd>H</kbd>
-                    </div>
-                    <span>Unhide</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>N</kbd></div>
-                    <span>Toggle sidebar</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>N</kbd>
-                    </div>
-                    <span>New File</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>S</kbd>
-                    </div>
-                    <span>Save</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd>
-                    </div>
-                    <span>Save incremental</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>Q</kbd></div>
-                    <span>Quick Favorite</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>T</kbd></div>
-                    <span>Toggle toolbar</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>X</kbd>/<kbd>Delete</kbd>
-                    </div>
-                    <span>Delete</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>Z</kbd>
-                    </div>
-                    <span>Undo</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>Ctrl</kbd> + <kbd>Z</kbd>
-                    </div>
-                    <span>Redo</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>Tab</kbd>
-                    </div>
-                    <span>Toggle snapping</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd><span class="context">(Hold)</span>
-                    </div>
-                    <span>Temporarily toggle snapping</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>F2</kbd></div>
-                    <span>Rename</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>F2</kbd>
-                    </div>
-                    <span>Batch rename</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>F3</kbd></div>
-                    <span>Search Operators</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>F11</kbd></div>
-                    <span>View render</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>F12</kbd></div>
-                    <span>Render</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>F12</kbd>
-                    </div>
-                    <span>Render Animation</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>Space</kbd>
-                    </div>
-                    <span>Toggle maximize editor</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>,</kbd>
-                    </div>
-                    <span>Open preferences</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="navigation" class="shortcut-section">
-            <h2>Navigation</h2>
-            <div class="shortcut-grid">
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Middle Mouse</kbd><span class="context">(Hold)</span>
-                    </div>
-                    <span>Orbit</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>Middle Mouse</kbd><span class="context">(Hold)</span>
-                    </div>
-                    <span>Pan</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Scroll Wheel</kbd>
-                    </div>
-                    <span>Zoom</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="numpads" class="shortcut-section">
-            <h2>Numpads</h2>
-            <div class="shortcut-grid">
-                <div class="shortcut-item">
-                    <div><kbd>1</kbd></div>
-                    <span>Front view</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>3</kbd></div>
-                    <span>Side view</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>5</kbd></div>
-                    <span>Perspective/Orthographic view</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>7</kbd></div>
-                    <span>Top View</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>1</kbd>/<kbd>3</kbd>/<kbd>7</kbd>
-                    </div>
-                    <span>Opposite view</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>1</kbd>/<kbd>3</kbd>/<kbd>7</kbd>
-                    </div>
-                    <span>Local/Normal view</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>/</kbd></div>
-                    <span>Toggle local view</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>.</kbd></div>
-                    <span>Frame selected</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>Home</kbd></div>
-                    <span>Frame all</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>~</kbd></div>
-                    <span>Navigation pie menu</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="selection" class="shortcut-section">
-            <h2>Selection</h2>
-            <div class="shortcut-grid">
-                <div class="shortcut-item">
-                    <div><kbd>A</kbd></div>
-                    <span>Select All</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>A</kbd> + <kbd>A</kbd><span class="context">(Double Tap)</span>
-                    </div>
-                    <span>Deselect All</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>B</kbd> + <kbd>Left Click</kbd><span class="context">(Drag)</span>
-                    </div>
-                    <span>Box Select</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>B</kbd> + <kbd>Middle Click</kbd><span class="context">(Drag)</span>
-                    </div>
-                    <span>Box Deselect</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>Right Click</kbd><span class="context">(Drag)</span>
-                    </div>
-                    <span>Lasso select</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Right Click</kbd><span class="context">(Drag)</span>
-                    </div>
-                    <span>Lasso deselect</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>C</kbd></div>
-                    <span>Circle Select Tool</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="3d-view" class="shortcut-section">
-            <h2>3D View</h2>
-            <div class="shortcut-grid">
-                <div class="shortcut-item">
-                    <div><kbd>Z</kbd></div>
-                    <span>Shading view menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>Z</kbd>
-                    </div>
-                    <span>Toggle wireframe view</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>Right click</kbd>
-                    </div>
-                    <span>Place 3D cursor</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>M</kbd>
-                    </div>
-                    <span>Mirror</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="object-mode" class="shortcut-section">
-            <h2>Object Mode</h2>
-            <div class="shortcut-grid">
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>J</kbd>
-                    </div>
-                    <span>Join Objects</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>M</kbd></div>
-                    <span>Move to collection</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>M</kbd>
-                    </div>
-                    <span>Link to collection</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>P</kbd>
-                    </div>
-                    <span>Set parent</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Alt</kbd> + <kbd>P</kbd>
-                    </div>
-                    <span>Clear parent</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>1-5</kbd>
-                    </div>
-                    <span>Set subdivision level</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="edit-mode" class="shortcut-section">
-            <h2>Edit Mode</h2>
-            <div class="shortcut-grid">
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>V</kbd>
-                    </div>
-                    <span>Vertex menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>E</kbd>
-                    </div>
-                    <span>Edge menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>F</kbd>
-                    </div>
-                    <span>Face menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>1</kbd></div>
-                    <span>Vertex select mode</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>2</kbd></div>
-                    <span>Edge select mode</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>3</kbd></div>
-                    <span>Face select mode</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd>
-                    </div>
-                    <span>Toggle Component select mode</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>B</kbd>
-                    </div>
-                    <span>Bevel</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>E</kbd></div>
-                    <span>Extrude</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Alt</kbd> + <kbd>E</kbd>
-                    </div>
-                    <span>Extrude menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>Right click</kbd>
-                    </div>
-                    <span>Extrude to cursor</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>F</kbd></div>
-                    <span>Make edge/face</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>G</kbd><span class="context">(Double tap)</span>
-                    </div>
-                    <span>Edge / Vertex slide</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>I</kbd></div>
-                    <span>Inset</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>J</kbd></div>
-                    <span>Vertex Connect</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>K</kbd></div>
-                    <span>Knife</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>M</kbd></div>
-                    <span>Merge menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>L</kbd>/<kbd>Ctrl</kbd> + <kbd>L</kbd>
-                    </div>
-                    <span>Select linked</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>N</kbd>
-                    </div>
-                    <span>Recalculate normals</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Alt</kbd> + <kbd>N</kbd>
-                    </div>
-                    <span>Normals menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>O</kbd></div>
-                    <span>Toggle proportional editing</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>P</kbd></div>
-                    <span>Separate from object</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Alt</kbd> + <kbd>S</kbd>
-                    </div>
-                    <span>Scale along normals</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>U</kbd></div>
-                    <span>Unwrap menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>V</kbd></div>
-                    <span>Rip</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Alt</kbd> + <kbd>V</kbd>
-                    </div>
-                    <span>Rip Fill</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>,</kbd></div>
-                    <span>Orientation pie menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>.</kbd></div>
-                    <span>Pivot point pie menu</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="animation-editors" class="shortcut-section">
-            <h2>Animation Editors</h2>
-            <div class="shortcut-grid">
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>E</kbd>
-                    </div>
-                    <span>Set curve easing type</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>E</kbd>
-                    </div>
-                    <span>Set curve extrapolation</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>I</kbd></div>
-                    <span>Insert keyframe</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>K</kbd></div>
-                    <span>Insert keyframe menu</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>K</kbd>
-                    </div>
-                    <span>Set active keying set</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>M</kbd></div>
-                    <span>Set new marker</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>V</kbd></div>
-                    <span>Set keyframe handle type</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>Right Arrow</kbd></div>
-                    <span>Move forward one frame</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>Left Arrow</kbd></div>
-                    <span>Move back one frame</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>Right Arrow</kbd>
-                    </div>
-                    <span>Jump to end of animation</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>Left Arrow</kbd>
-                    </div>
-                    <span>Jump to start of animation</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Alt</kbd> + <kbd>Right Arrow</kbd>
-                    </div>
-                    <span>Jump to next marker</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Alt</kbd> + <kbd>Left Arrow</kbd>
-                    </div>
-                    <span>Jump to previous marker</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>Up Arrow</kbd></div>
-                    <span>Jump to next keyframe</span>
-                </div>
-                <div class="shortcut-item">
-                    <div><kbd>Down Arrow</kbd></div>
-                    <span>Jump to previous keyframe</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="node-editor" class="shortcut-section">
-            <h2>Node Editor</h2>
-            <div class="shortcut-grid">
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Select</kbd>
-                    </div>
-                    <span>Connect to output</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>H</kbd>
-                    </div>
-                    <span>Toggle unused sockets</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Ctrl</kbd> + <kbd>Right Mouse Click</kbd><span class="context">(drag)</span>
-                    </div>
-                    <span>Cut links</span>
-                </div>
-                <div class="shortcut-item">
-                    <div>
-                        <kbd>Shift</kbd> + <kbd>Right Mouse Click</kbd><span class="context">(Drag)</span>
-                    </div>
-                    <span>Reroute links</span>
-                </div>
-            </div>
-        </section>
-    </main>
-
     <footer>
-        <p>Created as a reference for Blender users</p>
+        <p>&copy; 2023 Ferris404. All rights reserved.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script>
+        // Theme Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = themeToggle.querySelector('i');
+            const htmlElement = document.documentElement;
+            
+            // Check for saved theme preference and apply it
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            htmlElement.setAttribute('data-theme', savedTheme);
+            
+            // Update icon to match current theme
+            updateThemeIcon(savedTheme);
+            
+            // Toggle theme on button click
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                updateThemeIcon(newTheme);
+            });
+            
+            // Function to update icon based on theme
+            function updateThemeIcon(theme) {
+                if (theme === 'dark') {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                } else {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                }
+            }
+        });
+    </script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </body>
 </html> 

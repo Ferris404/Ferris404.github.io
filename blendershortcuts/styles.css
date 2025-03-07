@@ -1,0 +1,473 @@
+/* Base styles */
+:root {
+    /* Light theme (default) */
+    --bg-color: #f8f9fa;
+    --text-color: #333;
+    --header-bg: linear-gradient(135deg, #263238 0%, #37474f 100%);
+    --header-text: white;
+    --section-bg: white;
+    --item-bg: #f5f5f5;
+    --item-hover-bg: #e9ecef;
+    --kbd-bg: #263238;
+    --kbd-text: white;
+    --border-color: #ddd;
+    --accent-color: #263238;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --context-color: #666;
+}
+
+[data-theme="dark"] {
+    /* Dark theme */
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --header-bg: linear-gradient(135deg, #000000 0%, #212121 100%);
+    --header-text: #f5f5f5;
+    --section-bg: #1e1e1e;
+    --item-bg: #2d2d2d;
+    --item-hover-bg: #3d3d3d;
+    --kbd-bg: #000000;
+    --kbd-text: #f5f5f5;
+    --border-color: #444;
+    --accent-color: #90caf9;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --context-color: #aaa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+header {
+    text-align: center;
+    padding: 2rem 0;
+    background-image: var(--header-bg);
+    color: var(--header-text);
+    margin-bottom: 2rem;
+    border-radius: 8px;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Theme Toggle */
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    background-color: var(--section-bg);
+    border: 2px solid var(--accent-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px var(--shadow-color);
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+.theme-toggle i {
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+/* Navigation */
+#category-nav {
+    position: sticky;
+    top: 0;
+    background-image: var(--header-bg);
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    z-index: 100;
+    box-shadow: 0 3px 10px var(--shadow-color);
+}
+
+#category-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    list-style: none;
+    gap: 15px;
+}
+
+#category-nav ul li a {
+    color: var(--header-text);
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: all 0.3s;
+    display: block;
+}
+
+#category-nav ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Shortcut sections */
+.shortcut-section {
+    background-color: var(--section-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px var(--shadow-color);
+    transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+
+.shortcut-section:hover {
+    box-shadow: 0 5px 15px var(--shadow-color);
+}
+
+.shortcut-section h2 {
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+/* Shortcut grid */
+.shortcut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: var(--item-bg);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    border-left: 4px solid var(--accent-color);
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+    min-height: 60px;
+    word-wrap: break-word;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.shortcut-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px var(--shadow-color);
+    background-color: var(--item-hover-bg);
+}
+
+.shortcut-item > span {
+    flex: 1;
+    min-width: 150px;
+    padding-right: 5px;
+}
+
+/* Keyboard keys container */
+.shortcut-item > :first-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    min-width: 120px;
+}
+
+.shortcut-item .context {
+    color: var(--context-color);
+    font-size: 0.85rem;
+    margin-left: 5px;
+    font-style: italic;
+    display: inline-block;
+}
+
+/* Keyboard keys */
+kbd {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-weight: bold;
+    background-color: var(--kbd-bg);
+    color: var(--kbd-text);
+    border-radius: 4px;
+    box-shadow: 0 2px 3px var(--shadow-color);
+    white-space: nowrap;
+    margin: 2px;
+    min-width: 25px;
+    text-align: center;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--context-color);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 2rem;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--item-bg);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+    opacity: 0.8;
+}
+
+/* Category highlight */
+.shortcut-section:target {
+    animation: highlight 1s ease-out;
+}
+
+@keyframes highlight {
+    0% { box-shadow: 0 0 0 rgba(38, 50, 56, 0); }
+    50% { box-shadow: 0 0 20px var(--accent-color); }
+    100% { box-shadow: 0 2px 10px var(--shadow-color); }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .shortcut-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .shortcut-section {
+        padding: 1rem;
+    }
+    
+    #category-nav ul {
+        gap: 5px;
+    }
+    
+    #category-nav ul li a {
+        padding: 5px 10px;
+        font-size: 0.9rem;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .shortcut-item {
+        padding: 1rem;
+    }
+    
+    .shortcut-item > :first-child {
+        margin-bottom: 5px;
+    }
+    
+    .theme-toggle {
+        width: 40px;
+        height: 40px;
+        bottom: 10px;
+        right: 10px;
+    }
+}
+
+/* Print styles */
+@media print {
+    #category-nav {
+        display: none;
+    }
+    
+    .shortcut-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 1rem;
+        box-shadow: none;
+        border: 1px solid var(--border-color);
+    }
+    
+    body {
+        padding: 0;
+        font-size: 12pt;
+    }
+    
+    .theme-toggle {
+        display: none;
+    }
+}
+
+/* Important Shortcuts Button */
+.important-shortcuts-btn {
+    background-color: var(--accent-color);
+    color: var(--header-text);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    margin-top: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.important-shortcuts-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.important-shortcuts-btn i {
+    color: #FFD700; /* Gold star color */
+}
+
+/* Important Shortcuts Panel */
+.important-shortcuts-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-color);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    animation: slideDown 0.3s ease-out;
+}
+
+.important-shortcuts-panel.active {
+    display: flex;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.panel-header {
+    background-image: var(--header-bg);
+    color: var(--header-text);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.close-panel-btn {
+    background: none;
+    border: none;
+    color: var(--header-text);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.close-panel-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.panel-content {
+    padding: 2rem;
+    flex: 1;
+}
+
+.panel-content .shortcut-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Important Shortcuts Panel - Categories */
+.shortcuts-category {
+    margin-bottom: 30px;
+}
+
+.shortcuts-category h3 {
+    font-size: 1.3rem;
+    color: var(--accent-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.panel-content .shortcut-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: 15px;
+}
+
+/* Add a glow effect on hover in dark mode */
+[data-theme="dark"] .shortcut-item:hover {
+    box-shadow: 0 0 15px rgba(144, 202, 249, 0.2);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .important-shortcuts-btn {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+    }
+    
+    .panel-header h2 {
+        font-size: 1.4rem;
+    }
+    
+    .panel-content {
+        padding: 1rem;
+    }
+    
+    .shortcuts-category h3 {
+        font-size: 1.1rem;
+    }
+} 
