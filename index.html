@@ -4,31 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferris404's Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             /* Light theme (default) */
-            --bg-color: #f8f9fa;
+            --bg-color: #f5f7fa;
             --text-color: #333;
-            --header-bg: linear-gradient(135deg, #263238 0%, #37474f 100%);
+            --header-bg: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
             --header-text: white;
             --card-bg: white;
             --card-hover-bg: #f5f5f5;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --accent-color: #263238;
-            --link-color: #1a73e8;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --accent-color: #4e4376;
+            --link-color: #2b5876;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --border-color: #eaeaea;
         }
 
         [data-theme="dark"] {
             /* Dark theme */
-            --bg-color: #121212;
-            --text-color: #e0e0e0;
-            --header-bg: linear-gradient(135deg, #000000 0%, #212121 100%);
-            --header-text: #f5f5f5;
-            --card-bg: #1e1e1e;
-            --card-hover-bg: #2d2d2d;
+            --bg-color: #0f172a;
+            --text-color: #e2e8f0;
+            --header-bg: linear-gradient(135deg, #1a1c2c 0%, #4e4376 100%);
+            --header-text: #f8fafc;
+            --card-bg: #1e293b;
+            --card-hover-bg: #334155;
             --shadow-color: rgba(0, 0, 0, 0.3);
-            --accent-color: #90caf9;
-            --link-color: #90caf9;
+            --accent-color: #a855f7;
+            --link-color: #8b5cf6;
+            --nav-bg: rgba(15, 23, 42, 0.95);
+            --border-color: #334155;
         }
 
         * {
@@ -38,110 +43,253 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
             line-height: 1.6;
             color: var(--text-color);
             background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            padding: 0 20px;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--nav-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 15px 0;
+            box-shadow: 0 1px 10px var(--shadow-color);
+            transition: all 0.3s ease;
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            text-decoration: none;
         }
 
         header {
             background: var(--header-bg);
             color: var(--header-text);
-            padding: 40px 20px;
+            padding: 160px 20px 100px;
             text-align: center;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px var(--shadow-color);
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            margin-bottom: 50px;
         }
 
         header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
         }
 
         header p {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             opacity: 0.9;
             max-width: 700px;
-            margin: 0 auto;
+            margin: 0 auto 30px;
+            line-height: 1.4;
         }
 
-        .theme-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--accent-color);
-            color: var(--header-text);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 10px var(--shadow-color);
-            transition: transform 0.3s ease;
-            z-index: 100;
+        header .cta-button {
+            display: inline-block;
+            background-color: white;
+            color: var(--accent-color);
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
-        .theme-toggle:hover {
-            transform: scale(1.1);
+        header .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            color: var(--accent-color);
+        }
+
+        .section-title::after {
+            content: "";
+            display: block;
+            height: 4px;
+            width: 60px;
+            background: var(--accent-color);
+            margin: 15px auto 0;
+            border-radius: 2px;
         }
 
         .project-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
             margin-top: 20px;
         }
 
         .project-card {
             background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px var(--shadow-color);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--border-color);
         }
 
         .project-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px var(--shadow-color);
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px var(--shadow-color);
+        }
+
+        .card-image {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-image.blender {
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                        url('https://i.imgur.com/JjyDJAb.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-image.color-splitter {
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                        url('https://i.imgur.com/u7dQ7jl.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-image.future {
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                        url('https://i.imgur.com/CPrdFqK.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-content {
+            padding: 25px;
         }
 
         .project-card h2 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
+            font-size: 1.6rem;
+            margin-bottom: 12px;
             color: var(--accent-color);
+            font-weight: 700;
         }
 
         .project-card p {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .project-card .tags {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            gap: 8px;
+        }
+
+        .project-card .tag {
+            padding: 5px 10px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: rgba(78, 67, 118, 0.1);
+            color: var(--accent-color);
         }
 
         .project-card a {
             display: inline-block;
             background-color: var(--accent-color);
             color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 50px;
             text-decoration: none;
-            transition: background-color 0.3s ease;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .project-card a:hover {
             background-color: var(--link-color);
+            transform: translateY(-2px);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--accent-color);
+            color: var(--header-text);
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            transition: transform 0.3s ease;
+            z-index: 100;
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(5deg);
         }
 
         footer {
+            background-color: var(--card-bg);
             text-align: center;
-            margin-top: 50px;
-            padding: 20px;
+            margin-top: 80px;
+            padding: 40px 20px;
             color: var(--text-color);
-            opacity: 0.7;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .social-links a {
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .social-links a:hover {
+            transform: translateY(-3px);
+            color: var(--link-color);
         }
 
         @media (max-width: 768px) {
@@ -149,39 +297,122 @@
                 grid-template-columns: 1fr;
             }
             
-            header h1 {
-                font-size: 2rem;
+            header {
+                padding: 120px 20px 80px;
             }
+            
+            header h1 {
+                font-size: 2.4rem;
+            }
+
+            header p {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .float {
+            animation: float 5s ease-in-out infinite;
         }
     </style>
 </head>
 <body>
+    <nav>
+        <div class="container">
+            <a href="#" class="logo">Ferris404</a>
+            <div class="social-links">
+                <a href="https://github.com/Ferris404" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </nav>
+
     <header>
-        <h1>Ferris404's Portfolio</h1>
-        <p>Welcome to my personal website. Explore my projects and resources below.</p>
+        <div class="container">
+            <h1>Ferris404's Portfolio</h1>
+            <p>Welcome to my personal website where I showcase my projects and tools. Feel free to explore!</p>
+            <a href="#projects" class="cta-button">View My Projects</a>
+        </div>
     </header>
 
-    <main>
+    <main class="container">
+        <h2 class="section-title" id="projects">Featured Projects</h2>
+        
         <div class="project-grid">
-            <div class="project-card">
-                <h2>Blender Shortcuts</h2>
-                <p>A comprehensive collection of keyboard shortcuts for Blender, organized by categories for easy reference.</p>
-                <a href="blendershortcuts/">View Project</a>
+            <div class="project-card fade-in">
+                <div class="card-image blender"></div>
+                <div class="card-content">
+                    <h2>Blender Shortcuts</h2>
+                    <div class="tags">
+                        <span class="tag">Reference</span>
+                        <span class="tag">Blender</span>
+                        <span class="tag">HTML/CSS</span>
+                    </div>
+                    <p>A comprehensive collection of keyboard shortcuts for Blender, organized by categories for easy reference.</p>
+                    <a href="blendershortcuts/">View Project</a>
+                </div>
             </div>
             
-            <div class="project-card">
-                <h2>Color Splitter</h2>
-                <p>A tool to extract and separate colors from images. Upload an image and get individual color layers.</p>
-                <a href="https://sirdaffington.github.io/" target="_blank">View Project</a>
+            <div class="project-card fade-in">
+                <div class="card-image color-splitter"></div>
+                <div class="card-content">
+                    <h2>Color Splitter</h2>
+                    <div class="tags">
+                        <span class="tag">Tool</span>
+                        <span class="tag">Image Processing</span>
+                        <span class="tag">JavaScript</span>
+                    </div>
+                    <p>A tool to extract and separate colors from images. Upload an image and get individual color layers for artistic or design purposes.</p>
+                    <a href="https://sirdaffington.github.io/" target="_blank">View Project</a>
+                </div>
             </div>
             
-            <div class="project-card">
-                <h2>Future Project</h2>
-                <p>Womp Womp im lazy :D.</p>
-                <a href="#">Coming Soon?</a>
+            <div class="project-card fade-in">
+                <div class="card-image future"></div>
+                <div class="card-content">
+                    <h2>Future Project</h2>
+                    <div class="tags">
+                        <span class="tag">Coming Soon</span>
+                    </div>
+                    <p>Womp Womp I'm lazy :D. But I'll be adding more projects here in the future!</p>
+                    <a href="#">Coming Soon?</a>
+                </div>
             </div>
         </div>
     </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Ferris404. All rights reserved.</p>
+            <div class="social-links">
+                <a href="https://github.com/Ferris404" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </footer>
 
     <div class="theme-toggle" id="theme-toggle" title="Toggle Dark Mode">
         <i class="fas fa-moon"></i>
@@ -222,10 +453,27 @@
                     themeIcon.classList.add('fa-moon');
                 }
             }
+
+            // Scroll Animations
+            const fadeElements = document.querySelectorAll('.fade-in');
+            
+            function checkScroll() {
+                fadeElements.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    
+                    if (elementTop < windowHeight - 100) {
+                        element.classList.add('active');
+                    }
+                });
+            }
+            
+            // Initial check
+            checkScroll();
+            
+            // Check on scroll
+            window.addEventListener('scroll', checkScroll);
         });
     </script>
-    
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </body>
 </html> 

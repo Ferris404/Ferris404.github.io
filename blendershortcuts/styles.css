@@ -1,473 +1,467 @@
 /* Base styles */
 :root {
     /* Light theme (default) */
-    --bg-color: #f8f9fa;
+    --bg-color: #f5f7fa;
     --text-color: #333;
-    --header-bg: linear-gradient(135deg, #263238 0%, #37474f 100%);
+    --header-bg: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
     --header-text: white;
     --section-bg: white;
     --item-bg: #f5f5f5;
     --item-hover-bg: #e9ecef;
-    --kbd-bg: #263238;
+    --kbd-bg: #4e4376;
     --kbd-text: white;
     --border-color: #ddd;
-    --accent-color: #263238;
+    --accent-color: #4e4376;
     --shadow-color: rgba(0, 0, 0, 0.1);
     --context-color: #666;
+    --nav-bg: #ffffff;
+    --nav-border: #eaeaea;
+    --star-color: #ffc107;
 }
 
 [data-theme="dark"] {
     /* Dark theme */
-    --bg-color: #121212;
-    --text-color: #e0e0e0;
-    --header-bg: linear-gradient(135deg, #000000 0%, #212121 100%);
-    --header-text: #f5f5f5;
-    --section-bg: #1e1e1e;
-    --item-bg: #2d2d2d;
-    --item-hover-bg: #3d3d3d;
-    --kbd-bg: #000000;
-    --kbd-text: #f5f5f5;
+    --bg-color: #0f172a;
+    --text-color: #e2e8f0;
+    --header-bg: linear-gradient(135deg, #1a1c2c 0%, #4e4376 100%);
+    --header-text: #f8fafc;
+    --section-bg: #1e293b;
+    --item-bg: #2d3748;
+    --item-hover-bg: #3d4a65;
+    --kbd-bg: #5b21b6;
+    --kbd-text: #f8fafc;
     --border-color: #444;
-    --accent-color: #90caf9;
+    --accent-color: #8b5cf6;
     --shadow-color: rgba(0, 0, 0, 0.3);
-    --context-color: #aaa;
+    --context-color: #a0aec0;
+    --nav-bg: #1e293b;
+    --nav-border: #2d3748;
+    --star-color: #ffc107;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    scroll-behavior: smooth;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: var(--text-color);
     background-color: var(--bg-color);
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header styles */
 header {
-    text-align: center;
-    padding: 2rem 0;
-    background-image: var(--header-bg);
+    background: var(--header-bg);
     color: var(--header-text);
-    margin-bottom: 2rem;
-    border-radius: 8px;
+    padding: 80px 20px 20px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 6px var(--shadow-color);
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+    margin-bottom: 50px;
 }
 
 header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+    font-weight: 800;
 }
 
-/* Theme Toggle */
-.theme-toggle {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    background-color: var(--section-bg);
-    border: 2px solid var(--accent-color);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 10px var(--shadow-color);
-    transition: all 0.3s ease;
+header p {
+    max-width: 800px;
+    margin: 0 auto 30px;
+    font-size: 1.2rem;
+    opacity: 0.9;
 }
 
-.theme-toggle:hover {
-    transform: scale(1.1);
-}
-
-.theme-toggle i {
-    font-size: 1.5rem;
-    color: var(--text-color);
-}
-
-/* Navigation */
-#category-nav {
-    position: sticky;
-    top: 0;
-    background-image: var(--header-bg);
-    padding: 0.5rem;
-    margin-bottom: 2rem;
-    border-radius: 8px;
-    z-index: 100;
-    box-shadow: 0 3px 10px var(--shadow-color);
-}
-
-#category-nav ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    list-style: none;
-    gap: 15px;
-}
-
-#category-nav ul li a {
-    color: var(--header-text);
-    text-decoration: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    transition: all 0.3s;
-    display: block;
-}
-
-#category-nav ul li a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-}
-
-/* Shortcut sections */
-.shortcut-section {
-    background-color: var(--section-bg);
-    border-radius: 8px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 10px var(--shadow-color);
-    transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
-}
-
-.shortcut-section:hover {
-    box-shadow: 0 5px 15px var(--shadow-color);
-}
-
-.shortcut-section h2 {
-    border-bottom: 2px solid var(--accent-color);
-    padding-bottom: 0.75rem;
-    margin-bottom: 1.5rem;
-    color: var(--accent-color);
-    font-weight: 600;
-}
-
-/* Shortcut grid */
-.shortcut-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1.5rem;
-}
-
-.shortcut-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background-color: var(--item-bg);
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    border-left: 4px solid var(--accent-color);
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
-    min-height: 60px;
-    word-wrap: break-word;
-    flex-wrap: wrap;
-    position: relative;
-}
-
-.shortcut-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px var(--shadow-color);
-    background-color: var(--item-hover-bg);
-}
-
-.shortcut-item > span {
-    flex: 1;
-    min-width: 150px;
-    padding-right: 5px;
-}
-
-/* Keyboard keys container */
-.shortcut-item > :first-child {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 5px;
-    min-width: 120px;
-}
-
-.shortcut-item .context {
-    color: var(--context-color);
-    font-size: 0.85rem;
-    margin-left: 5px;
-    font-style: italic;
-    display: inline-block;
-}
-
-/* Keyboard keys */
-kbd {
-    display: inline-block;
-    padding: 0.2rem 0.5rem;
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-weight: bold;
-    background-color: var(--kbd-bg);
-    color: var(--kbd-text);
-    border-radius: 4px;
-    box-shadow: 0 2px 3px var(--shadow-color);
-    white-space: nowrap;
-    margin: 2px;
-    min-width: 25px;
-    text-align: center;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-/* Footer */
-footer {
-    text-align: center;
-    padding: 2rem 0;
-    color: var(--context-color);
-    font-size: 0.9rem;
-    border-top: 1px solid var(--border-color);
-    margin-top: 2rem;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--item-bg);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--accent-color);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-color);
-    opacity: 0.8;
-}
-
-/* Category highlight */
-.shortcut-section:target {
-    animation: highlight 1s ease-out;
-}
-
-@keyframes highlight {
-    0% { box-shadow: 0 0 0 rgba(38, 50, 56, 0); }
-    50% { box-shadow: 0 0 20px var(--accent-color); }
-    100% { box-shadow: 0 2px 10px var(--shadow-color); }
-}
-
-/* Media Queries */
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-    
-    .shortcut-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .shortcut-section {
-        padding: 1rem;
-    }
-    
-    #category-nav ul {
-        gap: 5px;
-    }
-    
-    #category-nav ul li a {
-        padding: 5px 10px;
-        font-size: 0.9rem;
-    }
-    
-    header h1 {
-        font-size: 2rem;
-    }
-    
-    .shortcut-item {
-        padding: 1rem;
-    }
-    
-    .shortcut-item > :first-child {
-        margin-bottom: 5px;
-    }
-    
-    .theme-toggle {
-        width: 40px;
-        height: 40px;
-        bottom: 10px;
-        right: 10px;
-    }
-}
-
-/* Print styles */
-@media print {
-    #category-nav {
-        display: none;
-    }
-    
-    .shortcut-section {
-        break-inside: avoid;
-        page-break-inside: avoid;
-        margin-bottom: 1rem;
-        box-shadow: none;
-        border: 1px solid var(--border-color);
-    }
-    
-    body {
-        padding: 0;
-        font-size: 12pt;
-    }
-    
-    .theme-toggle {
-        display: none;
-    }
-}
-
-/* Important Shortcuts Button */
+/* Important shortcuts button */
 .important-shortcuts-btn {
-    background-color: var(--accent-color);
-    color: var(--header-text);
+    background-color: var(--section-bg);
+    color: var(--accent-color);
     border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    margin-top: 15px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 50px;
     cursor: pointer;
-    display: flex;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.important-shortcuts-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .important-shortcuts-btn i {
-    color: #FFD700; /* Gold star color */
+    color: var(--star-color);
 }
 
-/* Important Shortcuts Panel */
+.important-shortcuts-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    background-color: white;
+}
+
+/* Important shortcuts panel */
 .important-shortcuts-panel {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--bg-color);
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
     z-index: 1000;
-    display: none;
-    flex-direction: column;
-    overflow-y: auto;
-    animation: slideDown 0.3s ease-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .important-shortcuts-panel.active {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
 }
 
-@keyframes slideDown {
-    from {
-        transform: translateY(-20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+.panel-content {
+    background-color: var(--section-bg);
+    border-radius: 12px;
+    max-width: 90%;
+    width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transform: translateY(30px);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 30px;
+}
+
+.important-shortcuts-panel.active .panel-content {
+    transform: translateY(0);
 }
 
 .panel-header {
-    background-image: var(--header-bg);
-    color: var(--header-text);
-    padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: sticky;
-    top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
 }
 
 .panel-header h2 {
-    margin: 0;
     font-size: 1.8rem;
+    color: var(--accent-color);
+    margin: 0;
+    font-weight: 700;
 }
 
 .close-panel-btn {
-    background: none;
+    background: transparent;
     border: none;
-    color: var(--header-text);
     font-size: 1.5rem;
+    color: var(--text-color);
     cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.close-panel-btn:hover {
+    transform: rotate(90deg);
+    color: var(--accent-color);
+}
+
+.shortcuts-category {
+    margin-bottom: 30px;
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.shortcuts-category h3 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: var(--accent-color);
+    font-weight: 600;
+    position: relative;
+    display: inline-block;
+}
+
+.shortcuts-category h3::after {
+    content: "";
+    display: block;
+    height: 3px;
     width: 40px;
-    height: 40px;
+    background: var(--accent-color);
+    margin-top: 5px;
+    border-radius: 2px;
+}
+
+/* Nav styles */
+#category-nav {
+    background-color: var(--nav-bg);
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px var(--shadow-color);
+    border-bottom: 1px solid var(--nav-border);
+    margin-bottom: 30px;
+}
+
+#category-nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+#category-nav ul li {
+    margin: 5px;
+}
+
+#category-nav ul li a {
+    text-decoration: none;
+    color: var(--text-color);
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: block;
+}
+
+#category-nav ul li a:hover {
+    background-color: rgba(78, 67, 118, 0.1);
+    color: var(--accent-color);
+}
+
+#category-nav ul li a.active {
+    background-color: var(--accent-color);
+    color: white;
+    font-weight: 600;
+}
+
+/* Section styles */
+.shortcut-section {
+    background-color: var(--section-bg);
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: 0 5px 15px var(--shadow-color);
+    transition: transform 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.shortcut-section:target {
+    animation: highlight 1.5s ease;
+}
+
+@keyframes highlight {
+    0% { box-shadow: 0 0 0 4px var(--accent-color); }
+    70% { box-shadow: 0 0 0 4px var(--accent-color); }
+    100% { box-shadow: 0 5px 15px var(--shadow-color); }
+}
+
+.shortcut-section h2 {
+    font-size: 2rem;
+    margin-bottom: 25px;
+    color: var(--accent-color);
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+}
+
+.shortcut-section h2::after {
+    content: "";
+    display: block;
+    height: 4px;
+    width: 60px;
+    background: var(--accent-color);
+    margin-top: 10px;
+    border-radius: 2px;
+}
+
+/* Shortcut grid styles */
+.shortcut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.shortcut-item {
+    background-color: var(--item-bg);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.shortcut-item:hover {
+    background-color: var(--item-hover-bg);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px var(--shadow-color);
+}
+
+.shortcut-item div {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+    gap: 5px;
+}
+
+.shortcut-item span {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.shortcut-item span.context {
+    color: var(--context-color);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-left: 5px;
+}
+
+kbd {
+    background-color: var(--kbd-bg);
+    color: var(--kbd-text);
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    display: inline-block;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+    line-height: 1;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: var(--accent-color);
+    color: var(--header-text);
+    width: 55px;
+    height: 55px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.3s;
+    cursor: pointer;
+    box-shadow: 0 5px 15px var(--shadow-color);
+    z-index: 100;
+    transition: transform 0.3s ease;
+    font-size: 1.2rem;
 }
 
-.close-panel-btn:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+.theme-toggle:hover {
+    transform: scale(1.1) rotate(5deg);
 }
 
-.panel-content {
-    padding: 2rem;
-    flex: 1;
+/* Footer styles */
+footer {
+    text-align: center;
+    margin-top: 60px;
+    padding: 40px 20px;
+    color: var(--text-color);
+    opacity: 0.8;
+    background-color: var(--nav-bg);
+    border-top: 1px solid var(--nav-border);
 }
 
-.panel-content .shortcut-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    max-width: 1400px;
-    margin: 0 auto;
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* Important Shortcuts Panel - Categories */
-.shortcuts-category {
-    margin-bottom: 30px;
+/* Back to top button */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background-color: var(--accent-color);
+    color: var(--header-text);
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 5px 15px var(--shadow-color);
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
 }
 
-.shortcuts-category h3 {
-    font-size: 1.3rem;
-    color: var(--accent-color);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 8px;
-    margin-bottom: 15px;
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
 }
 
-.panel-content .shortcut-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    max-width: 1400px;
-    margin: 0 auto;
-    gap: 15px;
+.back-to-top:hover {
+    transform: translateY(-5px);
 }
 
-/* Add a glow effect on hover in dark mode */
-[data-theme="dark"] .shortcut-item:hover {
-    box-shadow: 0 0 15px rgba(144, 202, 249, 0.2);
-}
-
-/* Media Queries */
+/* Responsive styles */
 @media (max-width: 768px) {
-    .important-shortcuts-btn {
-        font-size: 0.9rem;
-        padding: 6px 12px;
+    header {
+        padding: 60px 20px 20px;
     }
     
-    .panel-header h2 {
-        font-size: 1.4rem;
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .shortcut-section {
+        padding: 20px;
+    }
+    
+    .shortcut-section h2 {
+        font-size: 1.6rem;
+    }
+    
+    .shortcut-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    #category-nav ul {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding-bottom: 10px;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    #category-nav ul li a {
+        white-space: nowrap;
     }
     
     .panel-content {
-        padding: 1rem;
-    }
-    
-    .shortcuts-category h3 {
-        font-size: 1.1rem;
+        width: 95%;
+        max-height: 85vh;
     }
 } 
