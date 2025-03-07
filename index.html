@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferris404's Portfolio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             /* Light theme (default) */
@@ -19,6 +22,8 @@
             --link-color: #2b5876;
             --nav-bg: rgba(255, 255, 255, 0.95);
             --border-color: #eaeaea;
+            --tooltip-bg: rgba(0, 0, 0, 0.8);
+            --tooltip-text: white;
         }
 
         [data-theme="dark"] {
@@ -34,6 +39,8 @@
             --link-color: #8b5cf6;
             --nav-bg: rgba(15, 23, 42, 0.95);
             --border-color: #334155;
+            --tooltip-bg: rgba(0, 0, 0, 0.9);
+            --tooltip-text: #f8fafc;
         }
 
         * {
@@ -83,6 +90,18 @@
             font-size: 1.5rem;
             color: var(--accent-color);
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+            margin-right: 4px;
+        }
+
+        .logo:hover .logo-icon {
+            animation: pulse 1s infinite;
         }
 
         header {
@@ -92,6 +111,30 @@
             text-align: center;
             clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
             margin-bottom: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        header .container {
+            position: relative;
+            z-index: 2;
         }
 
         header h1 {
@@ -99,14 +142,26 @@
             font-weight: 800;
             margin-bottom: 20px;
             letter-spacing: -0.5px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s forwards 0.2s;
         }
 
         header p {
             font-size: 1.4rem;
-            opacity: 0.9;
+            opacity: 0;
             max-width: 700px;
             margin: 0 auto 30px;
             line-height: 1.4;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s forwards 0.4s;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 0.9;
+                transform: translateY(0);
+            }
         }
 
         header .cta-button {
@@ -119,6 +174,9 @@
             text-decoration: none;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s forwards 0.6s;
         }
 
         header .cta-button:hover {
@@ -159,11 +217,13 @@
             box-shadow: 0 5px 15px var(--shadow-color);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 1px solid var(--border-color);
+            position: relative;
         }
 
         .project-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 15px 30px var(--shadow-color);
+            z-index: 1;
         }
 
         .card-image {
@@ -172,23 +232,33 @@
             position: relative;
         }
 
+        .card-image::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.5));
+        }
+
         .card-image.blender {
             background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
-                        url('https://i.imgur.com/JjyDJAb.jpg');
+                        url('https://i.e-z.host/Teehee/4o2le1by.png');
             background-size: cover;
             background-position: center;
         }
 
         .card-image.color-splitter {
             background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
-                        url('https://i.imgur.com/u7dQ7jl.jpg');
+                        url('https://i.e-z.host/Teehee/4o2le1by.png');
             background-size: cover;
             background-position: center;
         }
 
         .card-image.future {
             background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
-                        url('https://i.imgur.com/CPrdFqK.jpg');
+                        url('https://i.e-z.host/Teehee/4o2le1by.png');
             background-size: cover;
             background-position: center;
         }
@@ -224,10 +294,17 @@
             font-weight: 600;
             background-color: rgba(78, 67, 118, 0.1);
             color: var(--accent-color);
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover .tag {
+            transform: scale(1.05);
         }
 
         .project-card a {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             background-color: var(--accent-color);
             color: white;
             padding: 10px 20px;
@@ -243,9 +320,10 @@
         }
 
         .theme-toggle {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
+            position: fixed !important;
+            bottom: 30px !important;
+            right: 50px !important;
+            left: auto !important;
             background-color: var(--accent-color);
             color: var(--header-text);
             width: 55px;
@@ -257,12 +335,57 @@
             cursor: pointer;
             box-shadow: 0 5px 15px var(--shadow-color);
             transition: transform 0.3s ease;
-            z-index: 100;
+            z-index: 1100;
             font-size: 1.2rem;
         }
 
         .theme-toggle:hover {
             transform: scale(1.1) rotate(5deg);
+        }
+
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip:after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--tooltip-bg);
+            color: var(--tooltip-text);
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .tooltip:before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: var(--tooltip-bg) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .tooltip:hover:after,
+        .tooltip:hover:before {
+            opacity: 1;
+            visibility: visible;
         }
 
         footer {
@@ -284,12 +407,67 @@
         .social-links a {
             color: var(--accent-color);
             font-size: 1.5rem;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
         .social-links a:hover {
             transform: translateY(-3px);
             color: var(--link-color);
+        }
+
+        /* Remove the underline animation for nav social links */
+        nav .social-links a::after {
+            display: none;
+        }
+
+        /* Keep the underline animation only for footer social links */
+        footer .social-links a::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-color);
+            bottom: -5px;
+            left: 0;
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease;
+        }
+
+        footer .social-links a:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background-color: var(--accent-color);
+            color: var(--header-text);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
         }
 
         @media (max-width: 768px) {
@@ -311,6 +489,22 @@
 
             .section-title {
                 font-size: 1.8rem;
+            }
+
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                left: 20px;
+            }
+
+            .theme-toggle {
+                width: 45px;
+                height: 45px;
+                bottom: 75px !important;
+                right: 30px !important;
+                left: auto !important;
+                margin: 0;
             }
         }
 
@@ -335,25 +529,50 @@
         .float {
             animation: float 5s ease-in-out infinite;
         }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Add some more animations */
+        .bounce-in {
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes bounceIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 <body>
     <nav>
         <div class="container">
-            <a href="#" class="logo">Ferris404</a>
+            <a href="#" class="logo">
+                <i class="fas fa-code logo-icon"></i> Ferris404
+            </a>
             <div class="social-links">
-                <a href="https://github.com/Ferris404" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
-                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
-                <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/Ferris404" target="_blank" title="GitHub" class="tooltip" data-tooltip="GitHub"><i class="fab fa-github"></i></a>
+                <a href="https://x.com/Daffington" title="Twitter" class="tooltip" data-tooltip="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="https://bsky.app/profile/ferris404.bsky.social" title="Bluesky" class="tooltip" data-tooltip="Bluesky"><i class="fas fa-square"></i></a>
             </div>
         </div>
     </nav>
 
     <header>
+        <div class="particles" id="particles"></div>
         <div class="container">
-            <h1>Ferris404's Portfolio</h1>
-            <p>Welcome to my personal website where I showcase my projects and tools. Feel free to explore!</p>
-            <a href="#projects" class="cta-button">View My Projects</a>
+            <h1>Ferris404's Website</h1>
+            <p>Welcome to my website where I showcase my projects and tools.</p>
+            <a href="#projects" class="cta-button"><i class="fas fa-arrow-down"></i> View My Projects</a>
         </div>
     </header>
 
@@ -371,7 +590,7 @@
                         <span class="tag">HTML/CSS</span>
                     </div>
                     <p>A comprehensive collection of keyboard shortcuts for Blender, organized by categories for easy reference.</p>
-                    <a href="blendershortcuts/">View Project</a>
+                    <a href="blendershortcuts/"><i class="fas fa-external-link-alt"></i> View Project</a>
                 </div>
             </div>
             
@@ -385,7 +604,7 @@
                         <span class="tag">JavaScript</span>
                     </div>
                     <p>A tool to extract and separate colors from images. Upload an image and get individual color layers for artistic or design purposes.</p>
-                    <a href="https://sirdaffington.github.io/" target="_blank">View Project</a>
+                    <a href="https://sirdaffington.github.io/" target="_blank"><i class="fas fa-external-link-alt"></i> View Project</a>
                 </div>
             </div>
             
@@ -397,7 +616,7 @@
                         <span class="tag">Coming Soon</span>
                     </div>
                     <p>Womp Womp I'm lazy :D. But I'll be adding more projects here in the future!</p>
-                    <a href="#">Coming Soon?</a>
+                    <a href="#"><i class="fas fa-hourglass-half"></i> Coming Soon?</a>
                 </div>
             </div>
         </div>
@@ -408,14 +627,18 @@
             <p>&copy; 2025 Ferris404. All rights reserved.</p>
             <div class="social-links">
                 <a href="https://github.com/Ferris404" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
-                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
-                <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://x.com/Daffington" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="https://bsky.app/profile/ferris404.bsky.social" title="Bluesky"><i class="fas fa-square"></i></a>
             </div>
         </div>
     </footer>
 
-    <div class="theme-toggle" id="theme-toggle" title="Toggle Dark Mode">
+    <div class="theme-toggle tooltip" id="theme-toggle" title="Toggle Dark Mode" data-tooltip="Toggle Dark Mode">
         <i class="fas fa-moon"></i>
+    </div>
+
+    <div class="back-to-top" id="back-to-top" title="Back to Top">
+        <i class="fas fa-arrow-up"></i>
     </div>
 
     <script>
@@ -454,6 +677,25 @@
                 }
             }
 
+            // Create back to top button functionality
+            const backToTopBtn = document.getElementById('back-to-top');
+            
+            backToTopBtn.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Show/hide back to top button based on scroll position
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopBtn.classList.add('visible');
+                } else {
+                    backToTopBtn.classList.remove('visible');
+                }
+            });
+
             // Scroll Animations
             const fadeElements = document.querySelectorAll('.fade-in');
             
@@ -473,6 +715,55 @@
             
             // Check on scroll
             window.addEventListener('scroll', checkScroll);
+
+            // Create particle animation
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = window.innerWidth < 768 ? 20 : 40;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Random size
+                const size = Math.random() * 6 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Random opacity
+                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                
+                // Animation
+                particle.style.animation = `float ${Math.random() * 8 + 4}s ease-in-out infinite`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.getAttribute('href') !== '#') {
+                        e.preventDefault();
+                        
+                        const targetId = this.getAttribute('href');
+                        const targetElement = document.querySelector(targetId);
+                        
+                        if (targetElement) {
+                            const offset = 80; // Account for fixed header
+                            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - offset;
+                            
+                            window.scrollTo({
+                                top: targetPosition,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+                });
+            });
         });
     </script>
 </body>

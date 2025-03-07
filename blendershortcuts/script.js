@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Create back to top button
+    // Add back to top button
     const backToTopBtn = document.createElement('div');
     backToTopBtn.classList.add('back-to-top');
     backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
@@ -90,8 +90,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Add print button
+    const printBtn = document.createElement('div');
+    printBtn.classList.add('print-btn');
+    printBtn.setAttribute('title', 'Print Shortcuts');
+    printBtn.innerHTML = '<i class="fas fa-print"></i>';
+    document.body.appendChild(printBtn);
+    
+    // Print the page when button is clicked
+    printBtn.addEventListener('click', function() {
+        window.print();
+    });
+    
+    // Add home link to header
+    const header = document.querySelector('header');
+    const homeLink = document.createElement('a');
+    homeLink.href = '../';
+    homeLink.className = 'home-link';
+    homeLink.innerHTML = '<i class="fas fa-home"></i> Back to Portfolio';
+    header.appendChild(homeLink);
+    
+    // Create loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'loading';
+    loadingIndicator.innerHTML = '<div class="spinner"></div>';
+    document.body.appendChild(loadingIndicator);
+    
+    // Store all shortcut items for search functionality
+    const shortcutItems = document.querySelectorAll('.shortcut-item');
+    
     // Add a search functionality
-    const headerContainer = document.querySelector('header');
     const searchContainer = document.createElement('div');
     searchContainer.className = 'search-container';
     searchContainer.innerHTML = `
@@ -102,15 +130,40 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     // Insert search after the header title
-    headerContainer.appendChild(searchContainer);
+    header.appendChild(searchContainer);
     
     const searchInput = document.getElementById('shortcut-search');
-    const shortcutItems = document.querySelectorAll('.shortcut-item');
     
     // Search functionality
     searchInput.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase();
         
+        // Show loading indicator for searches longer than 3 characters
+        if (searchTerm.length > 2) {
+            loadingIndicator.classList.add('active');
+            
+            // Use setTimeout to allow the loading indicator to render
+            setTimeout(() => {
+                performSearch(searchTerm);
+                loadingIndicator.classList.remove('active');
+            }, 100);
+        } else if (searchTerm.length === 0) {
+            // Reset search if input is empty
+            shortcutItems.forEach(item => {
+                item.style.display = '';
+            });
+            
+            // Show all sections
+            document.querySelectorAll('.shortcut-section').forEach(section => {
+                section.style.display = '';
+                
+                // Update shortcut count
+                updateShortcutCount(section);
+            });
+        }
+    });
+    
+    function performSearch(searchTerm) {
         shortcutItems.forEach(item => {
             const shortcutText = item.textContent.toLowerCase();
             const shouldShow = shortcutText.includes(searchTerm);
@@ -120,14 +173,43 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Show/hide sections based on whether they have visible shortcut items
         document.querySelectorAll('.shortcut-section').forEach(section => {
-            const visibleItems = section.querySelectorAll('.shortcut-item[style="display: none;"]');
-            if (visibleItems.length === section.querySelectorAll('.shortcut-item').length) {
+            const visibleItems = Array.from(section.querySelectorAll('.shortcut-item')).filter(
+                item => item.style.display !== 'none'
+            );
+            
+            if (visibleItems.length === 0) {
                 section.style.display = 'none';
             } else {
                 section.style.display = '';
+                
+                // Update shortcut count
+                const countBadge = section.querySelector('.shortcut-count');
+                if (countBadge) {
+                    countBadge.textContent = visibleItems.length;
+                }
             }
         });
-    });
+    }
+    
+    // Add shortcut count badges to each section
+    document.querySelectorAll('.shortcut-section').forEach(updateShortcutCount);
+    
+    function updateShortcutCount(section) {
+        const sectionTitle = section.querySelector('h2');
+        const shortcuts = section.querySelectorAll('.shortcut-item');
+        const visibleShortcuts = Array.from(shortcuts).filter(item => item.style.display !== 'none');
+        
+        // Create or update count badge
+        let countBadge = section.querySelector('.shortcut-count');
+        
+        if (!countBadge) {
+            countBadge = document.createElement('span');
+            countBadge.className = 'shortcut-count';
+            sectionTitle.appendChild(countBadge);
+        }
+        
+        countBadge.textContent = visibleShortcuts.length;
+    }
     
     // Fix for directly navigating to the 3D View section
     const threeDViewLink = document.querySelector('a[href="#3d-view"]');
@@ -160,61 +242,6 @@ document.addEventListener('DOMContentLoaded', function() {
             threeDViewLink.classList.add('active');
         });
     }
-    
-    // Add style for search box
-    const styleSheet = document.styleSheets[0];
-    styleSheet.insertRule(`
-        .search-container {
-            margin: 20px auto 0;
-            max-width: 500px;
-        }
-    `, styleSheet.cssRules.length);
-    
-    styleSheet.insertRule(`
-        .search-box {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-    `, styleSheet.cssRules.length);
-    
-    styleSheet.insertRule(`
-        .search-box input {
-            width: 100%;
-            padding: 12px 20px;
-            padding-right: 45px;
-            border-radius: 50px;
-            border: none;
-            background-color: rgba(255, 255, 255, 0.2);
-            color: var(--header-text);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
-    `, styleSheet.cssRules.length);
-    
-    styleSheet.insertRule(`
-        .search-box input:focus {
-            outline: none;
-            background-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-        }
-    `, styleSheet.cssRules.length);
-    
-    styleSheet.insertRule(`
-        .search-box input::placeholder {
-            color: rgba(255, 255, 255, 0.8);
-        }
-    `, styleSheet.cssRules.length);
-    
-    styleSheet.insertRule(`
-        .search-box i {
-            position: absolute;
-            right: 15px;
-            color: var(--header-text);
-            opacity: 0.8;
-        }
-    `, styleSheet.cssRules.length);
     
     // Smooth scrolling for navigation links
     const navLinks = document.querySelectorAll('#category-nav a');

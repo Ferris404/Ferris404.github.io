@@ -9,11 +9,13 @@
 </head>
 <body>
     <header>
-        <h1>Blender Shortcuts</h1>
-        <p>A comprehensive collection of keyboard shortcuts for Blender, organized by categories for easy reference.</p>
-        <button id="important-shortcuts-btn" class="important-shortcuts-btn">
-            <i class="fas fa-star"></i> Important Shortcuts
-        </button>
+        <div class="container">
+            <h1>Blender Shortcuts</h1>
+            <p>A comprehensive collection of keyboard shortcuts for Blender, organized by categories for easy reference.</p>
+            <button id="important-shortcuts-btn" class="important-shortcuts-btn">
+                <i class="fas fa-star"></i> Important Shortcuts
+            </button>
+        </div>
     </header>
 
     <!-- Important shortcuts panel -->
@@ -176,22 +178,24 @@
     </div>
 
     <!-- Theme toggle button -->
-    <div class="theme-toggle" id="theme-toggle" title="Toggle Dark Mode">
+    <div class="theme-toggle tooltip" id="theme-toggle" title="Toggle Dark Mode" data-tooltip="Toggle Dark Mode">
         <i class="fas fa-moon"></i>
     </div>
 
     <nav id="category-nav">
-        <ul>
-            <li><a href="#general">General</a></li>
-            <li><a href="#navigation">Navigation</a></li>
-            <li><a href="#numpads">Numpads</a></li>
-            <li><a href="#selection">Selection</a></li>
-            <li><a href="#3d-view">3D View</a></li>
-            <li><a href="#object-mode">Object Mode</a></li>
-            <li><a href="#edit-mode">Edit Mode</a></li>
-            <li><a href="#animation-editors">Animation Editors</a></li>
-            <li><a href="#node-editor">Node Editor</a></li>
-        </ul>
+        <div class="container">
+            <ul>
+                <li><a href="#general">General</a></li>
+                <li><a href="#navigation">Navigation</a></li>
+                <li><a href="#numpads">Numpads</a></li>
+                <li><a href="#selection">Selection</a></li>
+                <li><a href="#3d-view">3D View</a></li>
+                <li><a href="#object-mode">Object Mode</a></li>
+                <li><a href="#edit-mode">Edit Mode</a></li>
+                <li><a href="#animation-editors">Animation Editors</a></li>
+                <li><a href="#node-editor">Node Editor</a></li>
+            </ul>
+        </div>
     </nav>
 
     <main>
@@ -801,7 +805,20 @@
     </main>
 
     <footer>
-        <p>Created as a reference for Blender users</p>
+        <div class="footer-content">
+            <p>Created as a reference for Blender users</p>
+            <div class="footer-links">
+                <a href="https://www.blender.org/" target="_blank">Blender Website</a>
+                <a href="https://docs.blender.org/manual/en/latest/" target="_blank">Official Manual</a>
+                <a href="../" class="home-link-footer">Back to Portfolio</a>
+            </div>
+            <div class="social-links">
+                <a href="https://github.com/Ferris404" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" title="Bluesky"><i class="fas fa-square"></i></a>
+            </div>
+            <p class="footer-copyright">&copy; 2023 Ferris404. All rights reserved.</p>
+        </div>
     </footer>
 
     <script src="script.js"></script>
