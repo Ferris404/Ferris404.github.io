@@ -545,6 +545,44 @@
             margin-top: 4px;
             line-height: 1.4;
         }
+        /* filedrop */
+        .file-input-drop-area {
+            position: relative;
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+
+        .file-input-drop-area.active {
+            border-color: var(--accent-color);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .file-input-drop-area p {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        /* paste */
+        body.drag-active::after {
+            content: 'Drop image here';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(17, 24, 39, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            z-index: 999;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -553,11 +591,17 @@
             <div>
                 <h1 class="logo">Color Splitter</h1>
                 <p class="subtitle">Extract and separate colors from your images</p>
+                <p class="subtitle">
+                    <span id="dropStatusText">Drop images anywhere or paste from clipboard (Ctrl+V)</span>
+                </p>
             </div>
 
             <div class="settings-section">
                 <div class="input-group">
-                    <label for="imageInput" class="file-input-button">Put your file here</label>
+                    <div id="dropArea" class="file-input-drop-area">
+                        <p>Drag & drop image here or</p>
+                        <label for="imageInput" class="file-input-button">Browse Files</label>
+                    </div>
                     <input type="file" id="imageInput" accept="image/*">
                 </div>
             </div>
@@ -683,6 +727,7 @@
                             <li>Start with 15-30 colors for most images</li>
                             <li>Use more colors if you want more detail</li>
                             <li>Increase "Remove Stray Pixels" to clean up noise, Recommended is 3-5</li>
+                            <li>You can paste images directly with Ctrl+V/Cmd+V</li>    
                         </ul>
                     </div>
                 </div>
@@ -1392,6 +1437,114 @@
             advancedToggle.classList.toggle('open');
             advancedSettings.classList.toggle('open');
         });
+
+        const dropArea = document.getElementById('dropArea');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.classList.add('active');
+            document.body.classList.add('drag-active');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('active');
+            document.body.classList.remove('drag-active');
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files && files[0]) {
+                const file = files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert('Please upload an image file.');
+                    return;
+                }
+                
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('imageInput').files = dataTransfer.files;
+                
+                const originalImg = document.getElementById('originalImg');
+                const objectUrl = URL.createObjectURL(file);
+                originalImg.src = objectUrl;
+
+                document.getElementById('previewImg').src = '';
+                document.getElementById('downloadSection').innerHTML = '';
+                document.getElementById('progress').innerHTML = '';
+                document.getElementById('downloadSection').classList.remove('visible');
+
+                originalImg.onload = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    initComparisons();
+                };
+            }
+        }
+
+        document.addEventListener('paste', function(e) {
+                // the input element check THATI FORGOT TO DO TWICe
+                const activeElement = document.activeElement;
+                const isInput = activeElement.tagName === 'INPUT' || 
+                            activeElement.tagName === 'TEXTAREA';
+                
+                if (!isInput) {
+                    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                    
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            const blob = items[i].getAsFile();
+                            const files = new DataTransfer();
+                            files.items.add(blob);
+                            handleFiles(files.files);
+                            break;
+                        }
+                    }
+                }
+            });
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                document.body.addEventListener(eventName, () => {
+                    document.body.classList.add('drag-active');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                document.body.addEventListener(eventName, (e) => {
+                    // onyl remove the class if we're not still over a child element
+                    // i added this last funnily enough
+                    if (!e.relatedTarget || !document.body.contains(e.relatedTarget)) {
+                        document.body.classList.remove('drag-active');
+                    }
+                }, false);
+            });
+
+            document.body.addEventListener('drop', handleDrop, false);
 
         function getCustomLabParams() {
             return {
