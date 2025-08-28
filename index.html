@@ -36,7 +36,8 @@
           <option value="hsv">HSV</option>
         </select>
       </label>
-      <label><input id="perceptualWeighting" type="checkbox" checked> Perceptual color weighting</label>
+  <label><input id="perceptualWeighting" type="checkbox" checked> Perceptual color weighting</label>
+  <label><input id="ciede2000" type="checkbox"> CIEDE2000 distance (LAB)</label>
     </div>
     <div class="control-group">
       <h3>Preprocessing</h3>
@@ -62,6 +63,11 @@
       <h3>Export</h3>
       <button id="download" class="secondary">Download Layers</button>
     </div>
+    <div class="control-group">
+      <h3>Palette</h3>
+      <button id="mergeColors" class="secondary" disabled>Merge Selected</button>
+      <p style="font-size:12px;line-height:1.2;margin:0;">Double‑click swatch to lock. Shift+click or + badge to select multiple then merge.</p>
+    </div>
   </div>
 
   <div class="row">
@@ -73,7 +79,7 @@
     </div>
   </div>
 
-  <img-comparison-slider>
+  <img-comparison-slider class="comparison">
     <img id="original-image" slot="first" src="" alt="Original Image">
     <div slot="second" class="processed-container">
       <img id="processed-image" src="" alt="Processed Image">
@@ -82,11 +88,12 @@
   </img-comparison-slider>
 
   <div class="palette" id="palette"></div>
+  <div id="clusterStats" class="cluster-stats"></div>
 
   <footer></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/img-comparison-slider/dist/index.js"></script>
-  <script src="script.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>

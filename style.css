@@ -73,22 +73,11 @@ input[type="number"]:disabled {
 label {
   font-size: 13px;
 }
-input[type=file] {
-  display: block;
-}
-#preview {
-  max-width: 100%;
-  border: 1px solid #ddd;
-  background: #fff;
-}
-.row {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-.left {
-  min-width: 320px;
-}
+input[type=file] { display:block; }
+#preview { max-width:100%; border:1px solid #ddd; background:#fff; }
+.row { display:flex; gap:16px; align-items:flex-start; }
+.left { min-width:320px; }
+.right { flex:1; }
 .right {
   flex: 1;
 }
@@ -140,10 +129,7 @@ input[type=file] {
   border-radius: 6px;
   border: 1px solid #eee;
 }
-canvas {
-  max-width: 100%;
-  height: auto;
-}
+canvas { max-width:100%; height:auto; }
 button {
   padding: 8px 10px;
   border-radius: 6px;
@@ -166,21 +152,35 @@ footer {
   font-size: 13px;
 }
 
-.processed-container {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-  height: 100%;
+/* Comparison slider responsive handling */
+img-comparison-slider.comparison { display:block; width:100%; max-width: min(100%, 1100px); max-height:80vh; margin:12px auto; }
+img-comparison-slider.comparison img { max-height:80vh; }
+@media (max-height:700px){
+  img-comparison-slider.comparison { max-height:70vh; }
+  img-comparison-slider.comparison img { max-height:70vh; }
+}
+/* On very small screens allow near full width */
+@media (max-width: 600px){
+  img-comparison-slider.comparison { max-width:100%; }
+}
+img-comparison-slider { position:relative; }
+img-comparison-slider img { width:100%; height:100%; object-fit:contain; display:block; }
+.processed-container { position:relative; width:100%; height:100%; }
+.processed-container img { width:100%; height:100%; object-fit:contain; display:block; }
+/* Allow slider to shrink on narrow screens while preserving aspect ratio set via JS */
+@media (max-width: 640px){
+  img-comparison-slider { margin-left:0; margin-right:0; }
 }
 
-.processed-container img {
-  display: block;
+/* Overlay scales perfectly with processed image */
+#highlight-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-#highlight-overlay {
+  pointer-events: none;
   transition: opacity 0.3s ease;
   mix-blend-mode: normal;
   z-index: 10;
@@ -196,3 +196,46 @@ body.drag-over {
   width: 60px;
   text-align: center;
 }
+
+/* Palette lock & merge enhancements */
+.swatch { position: relative; }
+.swatch.locked::after {
+  content: '\1F512'; /* lock glyph */
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 14px;
+  filter: drop-shadow(0 0 2px #fff);
+}
+.merge-select-box {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 10px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+}
+.merge-select-box.selected { background: #0b69ff; color: #fff; border-color: #0b69ff; }
+
+.cluster-stats {
+  margin-top: 12px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 12px;
+  max-width: 720px;
+  overflow-x: auto;
+}
+.cluster-stats table { border-collapse: collapse; width: 100%; }
+.cluster-stats th, .cluster-stats td { padding: 4px 6px; text-align: left; border-bottom: 1px solid #eee; }
+.cluster-stats th { background: #f5f5f5; font-weight: 600; font-size: 11px; }
+.cluster-swatch-cell { width: 28px; }
+.cluster-swatch-mini { width: 20px; height: 20px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(0,0,0,0.15) inset; }
+.cluster-stats caption { text-align: left; font-weight: 600; margin-bottom: 6px; font-size: 12px; }
+
