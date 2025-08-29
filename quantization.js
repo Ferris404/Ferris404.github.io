@@ -1,4 +1,4 @@
-import { rgbToLab, labToRgb, convertColorSpace, convertBackToRgb } from './colorSpaces.js';
+import { rgbToLab, labToRgb, convertColorSpaceBatch, convertBackToRgbBatch } from './colorSpaces.js';
 
 export class SeededRandom {
   constructor(seed){ this.seed=seed%2147483647; if(this.seed<=0) this.seed+=2147483646; }
@@ -20,22 +20,146 @@ function deltaE2000(l1,a1,b1,l2,a2,b2){
   const Kl=1,Kc=1,Kh=1; return Math.sqrt(Math.pow(dLp/(Sl*Kl),2)+Math.pow(dCp/(Sc*Kc),2)+Math.pow(dHpTerm/(Sh*Kh),2)+Rt*(dCp/(Sc*Kc))*(dHpTerm/(Sh*Kh))); }
 
 export function quantizeColorsKMeansAdvanced(data, k, colorSpace='rgb', usePerceptualWeighting=true, rng=new SeededRandom(12345), useCIEDE2000=false) {
-  const pixels=[]; for(let i=0;i<data.length;i+=4){ if(data[i+3]>0){ let p=[data[i],data[i+1],data[i+2]]; if(usePerceptualWeighting && colorSpace==='rgb'){ p=[p[0]*0.299,p[1]*0.587,p[2]*0.114]; } pixels.push(p);} }
-  if(!pixels.length) return [];
-  const centroids=[ pixels[rng.randInt(0,pixels.length)] ];
-  for(let c=1;c<k;c++){
-    const dists=pixels.map(px=>Math.min(...centroids.map(ct=>px.reduce((s,v,i)=>s+(v-ct[i])**2,0))));
-    const total=dists.reduce((a,b)=>a+b,0); if(total===0) break; const thresh=rng.next()*total; let acc=0; for(let i=0;i<dists.length;i++){ acc+=dists[i]; if(acc>=thresh){ centroids.push([...pixels[i]]); break; }}
+  // Pre-allocate arrays to avoid repeated allocations
+  const pixels = [];
+  const pixelCount = data.length / 4;
+
+  // Single pass to collect valid pixels
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] > 0) {
+      let p = [data[i], data[i + 1], data[i + 2]];
+      if (usePerceptualWeighting && colorSpace === 'rgb') {
+        p = [p[0] * 0.299, p[1] * 0.587, p[2] * 0.114];
+      }
+      pixels.push(p);
+    }
   }
-  for(let iter=0;iter<50;iter++){
-    const clusters=new Array(centroids.length).fill(0).map(()=>[]);
-    for(const px of pixels){ let bi=0, bd=Infinity; for(let c=0;c<centroids.length;c++){ let d; if(useCIEDE2000 && colorSpace==='lab'){ d=deltaE2000(px[0],px[1],px[2],centroids[c][0],centroids[c][1],centroids[c][2]); } else { d=px.reduce((s,v,i)=>s+(v-centroids[c][i])**2,0); } if(d<bd){bd=d;bi=c;} } clusters[bi].push(px); }
-    let changed=false; const tol = (useCIEDE2000 && colorSpace==='lab') ? 0.1 : 1;
-    for(let c=0;c<centroids.length;c++) if(clusters[c].length){ const sums=[0,0,0]; for(const px of clusters[c]){sums[0]+=px[0];sums[1]+=px[1];sums[2]+=px[2];} const nc=[sums[0]/clusters[c].length,sums[1]/clusters[c].length,sums[2]/clusters[c].length]; if(nc.some((v,i)=>Math.abs(v-centroids[c][i])>tol)) changed=true; centroids[c]=nc; }
-    if(!changed) break;
+
+  if (!pixels.length) return [];
+
+  const pixelLen = pixels.length;
+  const centroids = [];
+
+  // K-means++ initialization - optimized
+  centroids.push(pixels[rng.randInt(0, pixelLen)]);
+
+  if (k > 1) {
+    // Pre-compute distances for efficiency
+    const distances = new Float32Array(pixelLen);
+
+    for (let c = 1; c < k; c++) {
+      let totalWeight = 0;
+
+      // Calculate squared distances to nearest centroid
+      for (let i = 0; i < pixelLen; i++) {
+        const px = pixels[i];
+        let minDist = Infinity;
+
+        for (let j = 0; j < centroids.length; j++) {
+          const ct = centroids[j];
+          const dist = (px[0] - ct[0]) ** 2 + (px[1] - ct[1]) ** 2 + (px[2] - ct[2]) ** 2;
+          if (dist < minDist) minDist = dist;
+        }
+
+        distances[i] = minDist;
+        totalWeight += minDist;
+      }
+
+      if (totalWeight === 0) break;
+
+      // Select next centroid
+      const threshold = rng.next() * totalWeight;
+      let cumulative = 0;
+      for (let i = 0; i < pixelLen; i++) {
+        cumulative += distances[i];
+        if (cumulative >= threshold) {
+          centroids.push([...pixels[i]]);
+          break;
+        }
+      }
+    }
   }
-  if(usePerceptualWeighting && colorSpace==='rgb') return centroids.map(c=>[Math.round(c[0]/0.299),Math.round(c[1]/0.587),Math.round(c[2]/0.114)]);
-  return centroids.map(c=>c.map(Math.round));
+
+  // Main K-means loop - optimized convergence
+  const clusters = new Array(k);
+  const clusterSums = new Float32Array(k * 3);
+  const clusterCounts = new Uint32Array(k);
+
+  for (let iter = 0; iter < 50; iter++) {
+    // Reset clusters and sums
+    for (let i = 0; i < k; i++) {
+      clusters[i] = [];
+      clusterSums[i * 3] = 0;
+      clusterSums[i * 3 + 1] = 0;
+      clusterSums[i * 3 + 2] = 0;
+      clusterCounts[i] = 0;
+    }
+
+    let changed = false;
+    const tol = (useCIEDE2000 && colorSpace === 'lab') ? 0.1 : 1;
+
+    // Assign pixels to clusters
+    for (let i = 0; i < pixelLen; i++) {
+      const px = pixels[i];
+      let bestIdx = 0;
+      let bestDist = Infinity;
+
+      for (let c = 0; c < k; c++) {
+        const ct = centroids[c];
+        let dist;
+
+        if (useCIEDE2000 && colorSpace === 'lab') {
+          dist = deltaE2000(px[0], px[1], px[2], ct[0], ct[1], ct[2]);
+        } else {
+          dist = (px[0] - ct[0]) ** 2 + (px[1] - ct[1]) ** 2 + (px[2] - ct[2]) ** 2;
+        }
+
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = c;
+        }
+      }
+
+      clusters[bestIdx].push(px);
+      clusterSums[bestIdx * 3] += px[0];
+      clusterSums[bestIdx * 3 + 1] += px[1];
+      clusterSums[bestIdx * 3 + 2] += px[2];
+      clusterCounts[bestIdx]++;
+    }
+
+    // Update centroids
+    for (let c = 0; c < k; c++) {
+      if (clusterCounts[c] > 0) {
+        const newCentroid = [
+          clusterSums[c * 3] / clusterCounts[c],
+          clusterSums[c * 3 + 1] / clusterCounts[c],
+          clusterSums[c * 3 + 2] / clusterCounts[c]
+        ];
+
+        // Check for convergence
+        const diff0 = Math.abs(newCentroid[0] - centroids[c][0]);
+        const diff1 = Math.abs(newCentroid[1] - centroids[c][1]);
+        const diff2 = Math.abs(newCentroid[2] - centroids[c][2]);
+
+        if (diff0 > tol || diff1 > tol || diff2 > tol) {
+          centroids[c] = newCentroid;
+          changed = true;
+        }
+      }
+    }
+
+    if (!changed) break;
+  }
+
+  if (usePerceptualWeighting && colorSpace === 'rgb') {
+    return centroids.map(c => [
+      Math.round(c[0] / 0.299),
+      Math.round(c[1] / 0.587),
+      Math.round(c[2] / 0.114)
+    ]);
+  }
+
+  return centroids.map(c => c.map(Math.round));
 }
 
 export function buildLayerData(data, centroids, w, h){
@@ -59,60 +183,224 @@ export function quantizeColorsMedianCut(data, k){
 }
 
 export function createVectorizedRepresentation(data, centroids, w, h, strayPixelThreshold){
-  const layers=buildLayerData(data,centroids,w,h);
-  const pixelCount = data.length/4;
-  // Build assignment map (cluster index per pixel, -1 if none)
-  const assign = new Int16Array(pixelCount).fill(-1);
-  for(let ci=0; ci<layers.length; ci++){
-    const d=layers[ci].data; for(let p=0;p<pixelCount;p++){ const o=p*4; if(d[o+3]>0) assign[p]=ci; }
-  }
-  if(strayPixelThreshold>0){
-    // Connected-component clean-up per cluster (4-neighborhood) and merge tiny regions to neighboring majority cluster.
-    const visited=new Uint8Array(pixelCount);
-    const stack=new Int32Array(pixelCount);
-    for(let p=0;p<pixelCount;p++){
-      if(visited[p]||assign[p]===-1) continue;
-      const cluster=assign[p]; let top=0; stack[top++]=p; visited[p]=1; const regionIdxs=[]; regionIdxs.push(p);
-      // BFS/DFS
-      while(top){ const cur=stack[--top]; const x=cur%w, y=(cur/w)|0; // neighbors
-        if(x>0){ const np=cur-1; if(!visited[np] && assign[np]===cluster){ visited[np]=1; stack[top++]=np; regionIdxs.push(np);} }
-        if(x<w-1){ const np=cur+1; if(!visited[np] && assign[np]===cluster){ visited[np]=1; stack[top++]=np; regionIdxs.push(np);} }
-        if(y>0){ const np=cur-w; if(!visited[np] && assign[np]===cluster){ visited[np]=1; stack[top++]=np; regionIdxs.push(np);} }
-        if(y<h-1){ const np=cur+w; if(!visited[np] && assign[np]===cluster){ visited[np]=1; stack[top++]=np; regionIdxs.push(np);} }
-      }
-      if(regionIdxs.length>0 && regionIdxs.length<=strayPixelThreshold){
-        // Collect neighbor cluster counts
-        const counts=new Int32Array(centroids.length);
-        for(const rp of regionIdxs){ const x=rp%w, y=(rp/w)|0; // look at 8 neighbors to find alternative clusters
-          for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
-            if(dx===0&&dy===0) continue; const nx=x+dx, ny=y+dy; if(nx<0||nx>=w||ny<0||ny>=h) continue; const np=ny*w+nx; const ac=assign[np]; if(ac!==-1 && ac!==cluster) counts[ac]++; }
+  const layers = buildLayerData(data, centroids, w, h);
+  const pixelCount = data.length / 4;
+  const k = centroids.length;
+
+  // Early exit for simple cases
+  if (strayPixelThreshold <= 0) {
+    // Guarantee coverage without complex processing
+    if (centroids.length) {
+      for (let p = 0; p < pixelCount; p++) {
+        const o = p * 4;
+        if (data[o + 3] <= 10) continue;
+
+        let covered = false;
+        for (const layer of layers) {
+          if (layer.data[o + 3] > 0) {
+            covered = true;
+            break;
+          }
         }
-        // Choose best alternative cluster with most adjacency
-        let best=cluster, bestCount=0; for(let c=0;c<counts.length;c++) if(counts[c]>bestCount){ bestCount=counts[c]; best=c; }
-        if(best!==cluster && bestCount>0){ for(const rp of regionIdxs) assign[rp]=best; }
+
+        if (!covered) {
+          const r = data[o], g = data[o + 1], b = data[o + 2];
+          let bi = 0, bd = Infinity;
+          for (let c = 0; c < k; c++) {
+            const cc = centroids[c];
+            const d = (r - cc[0]) ** 2 + (g - cc[1]) ** 2 + (b - cc[2]) ** 2;
+            if (d < bd) { bd = d; bi = c; }
+          }
+          const ld = layers[bi].data;
+          ld[o] = centroids[bi][0];
+          ld[o + 1] = centroids[bi][1];
+          ld[o + 2] = centroids[bi][2];
+          ld[o + 3] = 255;
+        }
       }
     }
-    // One smoothing pass: if a pixel's cluster differs from the majority of its 8-neighbors, and that majority exists, flip.
-    for(let p=0;p<pixelCount;p++){
-      if(assign[p]===-1) continue; const x=p%w, y=(p/w)|0; const localCounts=new Int32Array(centroids.length); let total=0;
-      for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
-        if(dx===0&&dy===0) continue; const nx=x+dx, ny=y+dy; if(nx<0||nx>=w||ny<0||ny>=h) continue; const np=ny*w+nx; const ac=assign[np]; if(ac!==-1){ localCounts[ac]++; total++; } }
-      if(total){ let majority=assign[p], max=localCounts[assign[p]]; for(let c=0;c<localCounts.length;c++) if(localCounts[c]>max){ max=localCounts[c]; majority=c; }
-        if(majority!==assign[p] && max>=4){ assign[p]=majority; }
+    return layers;
+  }
+
+  // Build assignment map more efficiently
+  const assign = new Int16Array(pixelCount).fill(-1);
+
+  // Single pass to build assignment map
+  for (let ci = 0; ci < k; ci++) {
+    const layerData = layers[ci].data;
+    for (let p = 0; p < pixelCount; p++) {
+      const o = p * 4;
+      if (layerData[o + 3] > 0) {
+        assign[p] = ci;
       }
     }
-    // Rebuild layers from assignment map
-    for(const layer of layers) layer.data.fill(0);
-    for(let p=0;p<pixelCount;p++){
-      const ci=assign[p]; if(ci===-1) continue; const o=p*4; const layer=layers[ci].data; const col=centroids[ci]; layer[o]=col[0]; layer[o+1]=col[1]; layer[o+2]=col[2]; layer[o+3]=255; }
   }
-  // Guarantee coverage: Any original opaque pixel without assignment (could happen if k=0) -> nearest centroid
-  if(centroids.length){
-    for(let p=0;p<pixelCount;p++){
-      const o=p*4; if(data[o+3]<=10) continue; let covered=false; for(const layer of layers){ if(layer.data[o+3]>0){ covered=true; break; } }
-      if(!covered){ const r=data[o],g=data[o+1],b=data[o+2]; let bi=0,bd=Infinity; for(let c=0;c<centroids.length;c++){ const cc=centroids[c]; const d=(r-cc[0])**2+(g-cc[1])**2+(b-cc[2])**2; if(d<bd){bd=d;bi=c;} } const ld=layers[bi].data; ld[o]=centroids[bi][0]; ld[o+1]=centroids[bi][1]; ld[o+2]=centroids[bi][2]; ld[o+3]=255; }
+
+  // Optimized connected component analysis
+  const visited = new Uint8Array(pixelCount);
+  const stack = new Int32Array(pixelCount);
+
+  for (let p = 0; p < pixelCount; p++) {
+    if (visited[p] || assign[p] === -1) continue;
+
+    const cluster = assign[p];
+    let top = 0;
+    stack[top++] = p;
+    visited[p] = 1;
+    const regionIdxs = [p];
+
+    // BFS with optimized neighbor checking
+    while (top > 0) {
+      const cur = stack[--top];
+      const x = cur % w;
+      const y = (cur / w) | 0;
+
+      // Check 4 neighbors
+      if (x > 0) {
+        const np = cur - 1;
+        if (!visited[np] && assign[np] === cluster) {
+          visited[np] = 1;
+          stack[top++] = np;
+          regionIdxs.push(np);
+        }
+      }
+      if (x < w - 1) {
+        const np = cur + 1;
+        if (!visited[np] && assign[np] === cluster) {
+          visited[np] = 1;
+          stack[top++] = np;
+          regionIdxs.push(np);
+        }
+      }
+      if (y > 0) {
+        const np = cur - w;
+        if (!visited[np] && assign[np] === cluster) {
+          visited[np] = 1;
+          stack[top++] = np;
+          regionIdxs.push(np);
+        }
+      }
+      if (y < h - 1) {
+        const np = cur + w;
+        if (!visited[np] && assign[np] === cluster) {
+          visited[np] = 1;
+          stack[top++] = np;
+          regionIdxs.push(np);
+        }
+      }
+    }
+
+    // Process small regions
+    if (regionIdxs.length > 0 && regionIdxs.length <= strayPixelThreshold) {
+      const counts = new Int32Array(k);
+
+      // Count neighboring clusters
+      for (const rp of regionIdxs) {
+        const x = rp % w;
+        const y = (rp / w) | 0;
+
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+              const np = ny * w + nx;
+              const ac = assign[np];
+              if (ac !== -1 && ac !== cluster) {
+                counts[ac]++;
+              }
+            }
+          }
+        }
+      }
+
+      // Find best alternative cluster
+      let best = cluster, bestCount = 0;
+      for (let c = 0; c < k; c++) {
+        if (counts[c] > bestCount) {
+          bestCount = counts[c];
+          best = c;
+        }
+      }
+
+      if (best !== cluster && bestCount > 0) {
+        for (const rp of regionIdxs) {
+          assign[rp] = best;
+        }
+      }
     }
   }
+
+  // Optimized smoothing pass
+  const tempAssign = new Int16Array(pixelCount);
+  for (let p = 0; p < pixelCount; p++) {
+    if (assign[p] === -1) {
+      tempAssign[p] = -1;
+      continue;
+    }
+
+    const x = p % w;
+    const y = (p / w) | 0;
+    const localCounts = new Int32Array(k);
+    let total = 0;
+
+    // Check 8 neighbors
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+          const np = ny * w + nx;
+          const ac = assign[np];
+          if (ac !== -1) {
+            localCounts[ac]++;
+            total++;
+          }
+        }
+      }
+    }
+
+    if (total > 0) {
+      let majority = assign[p], max = localCounts[assign[p]];
+      for (let c = 0; c < k; c++) {
+        if (localCounts[c] > max) {
+          max = localCounts[c];
+          majority = c;
+        }
+      }
+
+      tempAssign[p] = (majority !== assign[p] && max >= 4) ? majority : assign[p];
+    } else {
+      tempAssign[p] = assign[p];
+    }
+  }
+
+  // Copy back optimized assignments
+  for (let p = 0; p < pixelCount; p++) {
+    assign[p] = tempAssign[p];
+  }
+
+  // Rebuild layers efficiently
+  for (const layer of layers) {
+    layer.data.fill(0);
+  }
+
+  for (let p = 0; p < pixelCount; p++) {
+    const ci = assign[p];
+    if (ci === -1) continue;
+
+    const o = p * 4;
+    const layer = layers[ci];
+    const col = centroids[ci];
+    const ld = layer.data;
+    ld[o] = col[0];
+    ld[o + 1] = col[1];
+    ld[o + 2] = col[2];
+    ld[o + 3] = 255;
+  }
+
   return layers;
 }
 
@@ -123,10 +411,12 @@ export function processImage({ imageData, k, algorithm, colorSpace, perceptualWe
   let working = imageData; // ImageData
   // Preprocess
   // (Actual filters done outside or could be imported; kept simple here)
-  // Color space conversion
+  // Color space conversion - use batch processing for better performance
   const { data, width:w, height:h } = working;
   let spaceData = data;
-  if(colorSpace!=='rgb') spaceData = convertColorSpace(data, colorSpace);
+  if(colorSpace!=='rgb') {
+    spaceData = convertColorSpaceBatch(data, colorSpace);
+  }
   const rng = new SeededRandom(seed);
   // Start with locked centroids (already RGB). Trim if too many.
   const locked = lockedCentroids.slice(0, k);
@@ -135,22 +425,22 @@ export function processImage({ imageData, k, algorithm, colorSpace, perceptualWe
   if (remainingTarget === 0) {
     centroids = locked;
   } else if (algorithm === 'octree') {
-    const rgb = colorSpace==='rgb'? data : convertBackToRgb(spaceData, colorSpace);
+    const rgb = colorSpace==='rgb'? data : convertBackToRgbBatch(spaceData, colorSpace);
     const partialLayers = octreeQuantize(rgb, remainingTarget, w, h);
     const generated = partialLayers.map(layer => { const d=layer.data; let r=0,g=0,b=0,c=0; for(let i=0;i<d.length;i+=4){ if(d[i+3]>0){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; c++; }} return c? [Math.round(r/c),Math.round(g/c),Math.round(b/c)]:[0,0,0]; });
     centroids = locked.concat(generated);
   } else if (algorithm === 'lab') {
-    const labData = convertColorSpace(data,'lab');
+    const labData = convertColorSpaceBatch(data,'lab');
     const generated = quantizeColorsKMeansAdvanced(labData, remainingTarget, 'lab', perceptualWeighting, rng, useCIEDE2000).map(c=>labToRgb(c[0],c[1],c[2]));
     centroids = locked.concat(generated);
   } else if (algorithm === 'medianCut') {
-    const rgb = colorSpace==='rgb'? data : convertBackToRgb(spaceData, colorSpace);
+    const rgb = colorSpace==='rgb'? data : convertBackToRgbBatch(spaceData, colorSpace);
     const generated = quantizeColorsMedianCut(rgb, remainingTarget);
     centroids = locked.concat(generated);
   } else { // kmeans
   const raw = quantizeColorsKMeansAdvanced(spaceData, remainingTarget, colorSpace, perceptualWeighting, rng, useCIEDE2000 && colorSpace==='lab');
     let generated = raw;
-    if(colorSpace!=='rgb') generated = raw.map(c=>{ const rgb=convertBackToRgb([c[0],c[1],c[2],255], colorSpace); return [rgb[0],rgb[1],rgb[2]]; });
+    if(colorSpace!=='rgb') generated = raw.map(c=>{ const rgb=convertBackToRgbBatch([c[0],c[1],c[2],255], colorSpace); return [rgb[0],rgb[1],rgb[2]]; });
     centroids = locked.concat(generated);
   }
   const layers = createVectorizedRepresentation(data, centroids, w, h, strayPixelSize);
