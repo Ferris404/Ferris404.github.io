@@ -80,6 +80,11 @@ export function quantizeColorsKMeansAdvanced(data, k, colorSpace='rgb', usePerce
     }
   }
 
+  // If we didn't reach k centroids (e.g., few unique pixels), pad using random pixels
+  while (centroids.length < k) {
+    centroids.push(pixels[rng.randInt(0, pixelLen)]);
+  }
+
   // Main K-means loop - optimized convergence
   const clusters = new Array(k);
   const clusterSums = new Float32Array(k * 3);
@@ -106,6 +111,7 @@ export function quantizeColorsKMeansAdvanced(data, k, colorSpace='rgb', usePerce
 
       for (let c = 0; c < k; c++) {
         const ct = centroids[c];
+        if (!ct) continue;
         let dist;
 
         if (useCIEDE2000 && colorSpace === 'lab') {
@@ -145,6 +151,9 @@ export function quantizeColorsKMeansAdvanced(data, k, colorSpace='rgb', usePerce
           centroids[c] = newCentroid;
           changed = true;
         }
+      } else {
+        // No pixels assigned; keep centroid as-is
+        if (!centroids[c]) centroids[c] = pixels[rng.randInt(0, pixelLen)];
       }
     }
 

@@ -60,8 +60,9 @@
       <label>Seed: <input id="seed" type="number" min="0" max="999999" value="12345" disabled> <span id="seedVal">12345</span></label>
     </div>
     <div class="control-group">
-      <h3>Export</h3>
-      <button id="download" class="secondary">Download Layers</button>
+  <h3>Export</h3>
+  <button id="download" class="secondary">Download Layers</button>
+  <p class="muted" style="margin-top:6px;font-size:12px;line-height:1.2;">For GIFs, exports one animated GIF per color.</p>
     </div>
     <div class="control-group">
       <h3>Palette</h3>
@@ -80,9 +81,9 @@
   </div>
 
   <img-comparison-slider class="comparison">
-    <img id="original-image" slot="first" src="" alt="Original Image">
+  <img id="original-image" slot="first" src="" alt="Original">
     <div slot="second" class="processed-container">
-      <img id="processed-image" src="" alt="Processed Image">
+  <img id="processed-image" src="" alt="Processed">
       <canvas id="highlight-overlay" style="position: absolute; top: 0; left: 0; pointer-events: none; opacity: 0;"></canvas>
     </div>
   </img-comparison-slider>
