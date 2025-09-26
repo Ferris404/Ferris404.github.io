@@ -14,7 +14,8 @@
   <div class="controls">
     <div class="control-group">
       <h3>Main</h3>
-      <input id="file" type="file" accept="image/*">
+      <input id="file" type="file" accept="image/*" multiple>
+      <div id="imageStatus" class="image-status" style="display: none; margin: 8px 0; padding: 8px; background: #f0f0f0; border-radius: 4px; font-size: 14px;"></div>
       <label>Colors: <input id="colors" type="number" min="1" value="5"> <span id="colorsVal">5</span></label>
       <button id="process" class="primary">Separate</button>
     </div>

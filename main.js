@@ -26,8 +26,12 @@ const randomSeedCheckbox = qs('#randomSeed');
 const seedInput = qs('#seed');
 const seedVal = qs('#seedVal');
 const downloadBtn = qs('#download');
+const imageStatus = qs('#imageStatus');
 
 // State
+let originalImages = []; // Array of {file, img, name} objects
+let currentImageIndex = 0;
+let processedImages = []; // Array of {name, centroids, layerData, dimensions} objects
 let originalImage=null; let currentCentroids=[]; let currentLayerData=[]; let currentImageDimensions={width:0,height:0};
 let clusterPixelCounts=[]; let totalClusterPixels=0;
 let colorLocks=[]; // parallel to currentCentroids
@@ -40,20 +44,34 @@ worker.onmessage = (e) => {
   if (type === 'done') {
     try {
       const { centroids, width, height, layers } = e.data;
-      currentCentroids = centroids.map(c=>[...c]);
-      currentLayerData = layers.map(l => new ImageData(new Uint8ClampedArray(l.buffer), l.width, l.height));
-      currentImageDimensions = { width, height };
-      renderResult();
+      const processedCentroids = centroids.map(c=>[...c]);
+      const processedLayerData = layers.map(l => new ImageData(new Uint8ClampedArray(l.buffer), l.width, l.height));
+      const processedDimensions = { width, height };
+      
+      // Store processed image
+      processedImages.push({
+        name: originalImages[currentImageIndex].name,
+        centroids: processedCentroids,
+        layerData: processedLayerData,
+        dimensions: processedDimensions
+      });
+      
+      // Move to next image
+      currentImageIndex++;
+      const k = Number(colorsRange.value);
+      processNextImage(k);
+      
     } catch (err) {
       console.error('Render failure', err);
       alert('Render failed: '+err.message);
-    } finally {
-      processBtn.disabled=false; processBtn.textContent='Separate';
+      processBtn.disabled=false; 
+      processBtn.textContent = originalImages.length > 1 ? `Separate (${originalImages.length} images)` : 'Separate';
     }
   } else if (type === 'error') {
     console.error('Worker error', e.data.message, e.data.stack);
     alert('Processing failed: '+e.data.message);
-    processBtn.disabled=false; processBtn.textContent='Separate';
+    processBtn.disabled=false; 
+    processBtn.textContent = originalImages.length > 1 ? `Separate (${originalImages.length} images)` : 'Separate';
   }
 };
 
@@ -71,38 +89,204 @@ randomSeedCheckbox.addEventListener('change', ()=>{
 });
 
 downloadBtn.addEventListener('click', async () => {
-  if(!currentLayerData.length){ alert('Process an image first'); return; }
-  const zip = new JSZip(); const folder = zip.folder('layers');
-  for (let i=0;i<currentLayerData.length;i++){ const layer=currentLayerData[i]; const centroid=currentCentroids[i]; const hex=rgbToHex(centroid[0],centroid[1],centroid[2]); const canvas=document.createElement('canvas'); canvas.width=layer.width; canvas.height=layer.height; canvas.getContext('2d').putImageData(layer,0,0); const blob = await new Promise(r=>canvas.toBlob(r,'image/png')); folder.file(`${hex}.png`, blob); }
-  const content = await zip.generateAsync({type:'blob'}); const a=document.createElement('a'); a.href=URL.createObjectURL(content); a.download='color-layers.zip'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  if (!processedImages.length && !currentLayerData.length) { 
+    alert('Process images first'); 
+    return; 
+  }
+  
+  // If only one image or single image mode, download as before
+  if (processedImages.length <= 1 && currentLayerData.length > 0) {
+    const zip = new JSZip();
+    const folder = zip.folder('layers');
+    for (let i = 0; i < currentLayerData.length; i++) {
+      const layer = currentLayerData[i];
+      const centroid = currentCentroids[i];
+      const hex = rgbToHex(centroid[0], centroid[1], centroid[2]);
+      const canvas = document.createElement('canvas');
+      canvas.width = layer.width;
+      canvas.height = layer.height;
+      canvas.getContext('2d').putImageData(layer, 0, 0);
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      folder.file(`${hex}.png`, blob);
+    }
+    const content = await zip.generateAsync({type: 'blob'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(content);
+    a.download = 'color-layers.zip';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    return;
+  }
+  
+  // Multiple images - create ZIP with folders
+  const zip = new JSZip();
+  
+  for (const processed of processedImages) {
+    const imageFolder = zip.folder(processed.name);
+    
+    for (let i = 0; i < processed.layerData.length; i++) {
+      const layer = processed.layerData[i];
+      const centroid = processed.centroids[i];
+      const hex = rgbToHex(centroid[0], centroid[1], centroid[2]);
+      const canvas = document.createElement('canvas');
+      canvas.width = layer.width;
+      canvas.height = layer.height;
+      canvas.getContext('2d').putImageData(layer, 0, 0);
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      imageFolder.file(`${hex}.png`, blob);
+    }
+  }
+  
+  const content = await zip.generateAsync({type: 'blob'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(content);
+  a.download = 'color-separation-results.zip';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 });
 
-fileInput.addEventListener('change', e => { const f=e.target.files && e.target.files[0]; if(f) handleFile(f); });
+fileInput.addEventListener('change', e => { 
+  const files = e.target.files;
+  if (files && files.length > 0) {
+    handleFiles(Array.from(files));
+  }
+});
 
 ['dragenter','dragover','dragleave','drop'].forEach(ev=>document.body.addEventListener(ev, preventDefaults, false));
 let dragCounter=0; document.body.addEventListener('dragenter', ()=>{ dragCounter++; document.body.classList.add('drag-over'); });
 document.body.addEventListener('dragleave', ()=>{ dragCounter--; if(dragCounter===0) document.body.classList.remove('drag-over'); });
-document.body.addEventListener('drop', e=>{ dragCounter=0; document.body.classList.remove('drag-over'); const dt=e.dataTransfer; if(dt.files.length>0) handleFile(dt.files[0]); });
-window.addEventListener('paste', e=>{ const items=(e.clipboardData||e.originalEvent?.clipboardData)?.items||[]; for(const item of items){ if(item.kind==='file' && item.type.startsWith('image/')){ const file=item.getAsFile(); if(file) handleFile(file); break; } } });
+document.body.addEventListener('drop', e=>{ dragCounter=0; document.body.classList.remove('drag-over'); const dt=e.dataTransfer; if(dt && dt.files.length>0) handleFiles(Array.from(dt.files)); });
+window.addEventListener('paste', e=>{ const items=(e.clipboardData||e.originalEvent?.clipboardData)?.items||[]; for(const item of items){ if(item.kind==='file' && item.type.startsWith('image/')){ const file=item.getAsFile(); if(file) handleFiles([file]); break; } } });
 
 function preventDefaults(e){ e.preventDefault(); e.stopPropagation(); }
 
-function handleFile(file){ if(!file.type.startsWith('image/')) return; const url=URL.createObjectURL(file); const img=new Image(); img.onload=()=>{ originalImage=img; preview.style.display='block'; drawPreview(img); URL.revokeObjectURL(url); }; img.src=url; }
+function handleFiles(files) {
+  const imageFiles = files.filter(file => file.type.startsWith('image/'));
+  if (imageFiles.length === 0) return;
+  
+  originalImages = [];
+  processedImages = [];
+  
+  let loadedCount = 0;
+  imageFiles.forEach((file, index) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      originalImages.push({
+        file: file,
+        img: img,
+        name: file.name.replace(/\.[^/.]+$/, "") // Remove extension
+      });
+      URL.revokeObjectURL(url);
+      
+      loadedCount++;
+      if (loadedCount === imageFiles.length) {
+        // All images loaded, show first one
+        currentImageIndex = 0;
+        originalImage = originalImages[0].img;
+        preview.style.display = 'block';
+        drawPreview(originalImage);
+        
+        // Update UI to show multiple images loaded
+        if (originalImages.length > 1) {
+          processBtn.textContent = `Separate (${originalImages.length} images)`;
+          imageStatus.style.display = 'block';
+          imageStatus.textContent = `Loaded ${originalImages.length} images: ${originalImages.map(img => img.name).join(', ')}`;
+        } else {
+          processBtn.textContent = 'Separate';
+          imageStatus.style.display = 'none';
+        }
+      }
+    };
+    img.src = url;
+  });
+}
+
+function handleFile(file){ if(!file.type.startsWith('image/')) return; handleFiles([file]); }
 
 function drawPreview(img){ const ctx=preview.getContext('2d',{willReadFrequently:true}); const max=Number(downsampleSizeInput.value); let w=img.naturalWidth, h=img.naturalHeight; if(downsampleChk.checked && Math.max(w,h)>max){ const scale=max/Math.max(w,h); w=Math.round(w*scale); h=Math.round(h*scale);} preview.width=w; preview.height=h; ctx.clearRect(0,0,w,h); ctx.drawImage(img,0,0,w,h); }
 
 function getCurrentSeed(){ if(randomSeedCheckbox.checked){ const seed=Math.floor(Math.random()*1000000); seedInput.value=seed; seedVal.textContent=seed; return seed; } return Number(seedInput.value); }
 
 processBtn.addEventListener('click', ()=>{
-  if(!originalImage){ alert('Choose an image first'); return; }
+  if(!originalImages.length){ alert('Choose images first'); return; }
   const k=Number(colorsRange.value); if(k<1){ alert('Invalid color count'); return; }
-  const seed=getCurrentSeed(); drawPreview(originalImage);
-  const ctx=preview.getContext('2d',{willReadFrequently:true}); const img=ctx.getImageData(0,0,preview.width, preview.height);
-  processBtn.disabled=true; processBtn.textContent='Processing...';
-  const lockedCentroids = currentCentroids.filter((_,i)=>colorLocks[i]);
-  if(lockedCentroids.length > k){ alert('Locked colors exceed requested color count. Increase Colors or unlock some.'); processBtn.disabled=false; processBtn.textContent='Separate'; return; }
-  worker.postMessage({ type:'process', payload:{ width:img.width, height:img.height, buffer: img.data.buffer, k, algorithm: algorithmSelect.value, colorSpace: colorSpaceSelect.value, perceptualWeighting: perceptualWeightingCheckbox.checked, preprocessing: preprocessingSelect.value, blurStrength: Number(blurStrengthRange.value), strayPixelSize: Number(strayPixelSizeRange.value), seed, lockedCentroids, useCIEDE2000: ciede2000Checkbox.checked } }, [img.data.buffer]);
+  
+  processedImages = [];
+  currentImageIndex = 0;
+  processNextImage(k);
 });
+
+function processNextImage(k) {
+  if (currentImageIndex >= originalImages.length) {
+    // All images processed
+    processBtn.disabled = false;
+    processBtn.textContent = originalImages.length > 1 ? `Separate (${originalImages.length} images)` : 'Separate';
+    
+    if (originalImages.length > 1) {
+      imageStatus.textContent = `Completed processing ${processedImages.length} images. Ready for download.`;
+    } else {
+      imageStatus.style.display = 'none';
+    }
+    
+    // Show first processed image
+    if (processedImages.length > 0) {
+      const firstProcessed = processedImages[0];
+      currentCentroids = firstProcessed.centroids;
+      currentLayerData = firstProcessed.layerData;
+      currentImageDimensions = firstProcessed.dimensions;
+      renderResult();
+    }
+    return;
+  }
+  
+  const imageData = originalImages[currentImageIndex];
+  originalImage = imageData.img;
+  
+  processBtn.disabled = true;
+  processBtn.textContent = `Processing ${currentImageIndex + 1}/${originalImages.length}...`;
+  
+  if (originalImages.length > 1) {
+    imageStatus.textContent = `Processing "${imageData.name}" (${currentImageIndex + 1}/${originalImages.length})...`;
+  }
+  
+  drawPreview(originalImage);
+  const ctx = preview.getContext('2d', {willReadFrequently: true});
+  const img = ctx.getImageData(0, 0, preview.width, preview.height);
+  
+  const seed = getCurrentSeed();
+  const lockedCentroids = currentCentroids.filter((_, i) => colorLocks[i]);
+  
+  if (lockedCentroids.length > k) {
+    alert('Locked colors exceed requested color count. Increase Colors or unlock some.');
+    processBtn.disabled = false;
+    processBtn.textContent = originalImages.length > 1 ? `Separate (${originalImages.length} images)` : 'Separate';
+    return;
+  }
+  
+  worker.postMessage({
+    type: 'process',
+    payload: {
+      width: img.width,
+      height: img.height,
+      buffer: img.data.buffer,
+      k,
+      algorithm: algorithmSelect.value,
+      colorSpace: colorSpaceSelect.value,
+      perceptualWeighting: perceptualWeightingCheckbox.checked,
+      preprocessing: preprocessingSelect.value,
+      blurStrength: Number(blurStrengthRange.value),
+      strayPixelSize: Number(strayPixelSizeRange.value),
+      seed,
+      lockedCentroids,
+      useCIEDE2000: ciede2000Checkbox.checked
+    }
+  }, [img.data.buffer]);
+}
 
 function renderResult(){ preview.style.display='none'; layersEl.innerHTML=''; paletteEl.innerHTML=''; mergeSelection.clear(); updateMergeButtonState(); if(colorLocks.length !== currentCentroids.length) colorLocks = currentCentroids.map((_,i)=>colorLocks[i]||false); clusterPixelCounts=[]; totalClusterPixels=0;
   // Blend layers
