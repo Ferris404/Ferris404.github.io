@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { GifProcessor } from './gifProcessor.js';
 import { rgbToHex, hexToRgb, rgbToLab } from './colorSpaces.js';
 
 // DOM refs
@@ -7,61 +8,6 @@ const fileInput = qs('#file');
 const preview = qs('#preview');
 const colorsRange = qs('#colors');
 const colorsVal = qs('#colorsVal');
-// Lazy-loaded GIF helpers (loaded via ESM CDN when needed)
-// Holds decoder functions when loaded
-let gifDecode = null; // shape: { parseGIF, decompressFrames }
-// Holds encoder functions when loaded
-let gifEnc = null;    // shape: { GIFEncoder, quantize, applyPalette }
-
-// Robust dynamic import helpers with CDN fallbacks
-async function importGifDecode(){
-  if (gifDecode) return gifDecode;
-  const urls = [
-  'https://cdn.jsdelivr.net/npm/gifuct-js/+esm',
-  'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm',
-  'https://unpkg.com/gifuct-js?module',
-  'https://unpkg.com/gifuct-js@2.1.2?module',
-  'https://cdn.skypack.dev/gifuct-js',
-  'https://esm.sh/gifuct-js',
-  'https://esm.run/gifuct-js'
-  ];
-  let lastErr;
-  for (const url of urls){
-    try{
-      const mod = await import(url);
-      const parseGIF = mod.parseGIF || mod.default?.parseGIF;
-      const decompressFrames = mod.decompressFrames || mod.default?.decompressFrames;
-      if (parseGIF && decompressFrames){
-        gifDecode = { parseGIF, decompressFrames };
-        return gifDecode;
-      }
-    }catch(e){ lastErr = e; }
-  }
-  throw new Error('Failed to load gifuct-js: ' + (lastErr?.message||lastErr));
-}
-
-async function importGifEnc(){
-  if (gifEnc) return gifEnc;
-  const urls = [
-  'https://cdn.jsdelivr.net/npm/gifenc@1.0.3/+esm',
-  'https://unpkg.com/gifenc@1.0.3?module',
-  'https://cdn.skypack.dev/gifenc@1.0.3',
-  'https://esm.sh/gifenc@1.0.3'
-  ];
-  let lastErr;
-  for (const url of urls){
-    try{
-      const mod = await import(url);
-      const enc = {
-        GIFEncoder: mod.GIFEncoder || mod.default?.GIFEncoder,
-        quantize: mod.quantize || mod.default?.quantize,
-        applyPalette: mod.applyPalette || mod.default?.applyPalette
-      };
-      if (enc.GIFEncoder && enc.quantize && enc.applyPalette){ gifEnc = enc; return gifEnc; }
-    }catch(e){ lastErr = e; }
-  }
-  throw new Error('Failed to load gifenc: ' + (lastErr?.message||lastErr));
-}
 const processBtn = qs('#process');
 const layersEl = qs('#layers');
 const paletteEl = qs('#palette');
@@ -70,13 +16,11 @@ const downsampleChk = qs('#downsample');
 const downsampleOptions = qs('#downsampleOptions');
 const downsampleSizeInput = qs('#downsampleSize');
 const strayPixelSizeRange = qs('#strayPixelSize');
+const forceOpaqueChk = qs('#forceOpaque');
 
-// GIF-specific state
-let isAnimatedGif = false;
-let gifFrames = []; // [{ imageData: ImageData, delay: number }]
-let gifLoopCount = 0; // 0=infinite
-let perColorGifFrames = []; // Array<Array<{ imageData: ImageData, delayCs: number }>>
-let originalGifUrl = null; // Object URL of uploaded GIF for playback
+const gifProcessor = new GifProcessor();
+let gifSession = null; // { width, height, loopCount, originalUrl, frames }
+let gifPerColorFrames = []; // Array<Array<{ imageData: ImageData, delayCs: number }>>
 let processedGifUrl = null; // Object URL of encoded quantized GIF for playback
 const strayPixelSizeVal = qs('#strayPixelSizeVal');
 const algorithmSelect = qs('#algorithm');
@@ -111,9 +55,14 @@ worker.onmessage = (e) => {
   if (type === 'done') {
     try {
       const { centroids, width, height, layers } = e.data;
-      const processedCentroids = centroids.map(c=>[...c]);
+      const processedCentroids = centroids.map(c => [...c]);
       const processedLayerData = layers.map(l => new ImageData(new Uint8ClampedArray(l.buffer), l.width, l.height));
       const processedDimensions = { width, height };
+
+      currentCentroids = processedCentroids;
+      currentLayerData = processedLayerData;
+      currentImageDimensions = processedDimensions;
+      renderResult();
       
       // Store processed image
       processedImages.push({
@@ -143,7 +92,7 @@ worker.onmessage = (e) => {
 };
 
 // Helper to run the worker once and get a Promise result
-function runWorkerOnce(imageData, { k, lockedCentroids, seed }){
+function runWorkerOnce(imageData, { k, lockedCentroids, seed, strayPixelSize = null }){
   return new Promise((resolve, reject) => {
     _pendingWorkerPromises++;
     const handler = (e) => {
@@ -154,8 +103,92 @@ function runWorkerOnce(imageData, { k, lockedCentroids, seed }){
     worker.addEventListener('message', handler);
     // Copy pixels so we don't neuter the original buffer
     const copy = new Uint8ClampedArray(imageData.data);
-    worker.postMessage({ type:'process', payload:{ width:imageData.width, height:imageData.height, buffer: copy.buffer, k, algorithm: algorithmSelect.value, colorSpace: colorSpaceSelect.value, perceptualWeighting: perceptualWeightingCheckbox.checked, preprocessing: preprocessingSelect.value, blurStrength: Number(blurStrengthRange.value), strayPixelSize: Number(strayPixelSizeRange.value), seed, lockedCentroids, useCIEDE2000: ciede2000Checkbox.checked } }, [copy.buffer]);
+    // Use provided strayPixelSize or fall back to UI value
+    const effectiveStrayPixelSize = strayPixelSize !== null ? strayPixelSize : Number(strayPixelSizeRange.value);
+    worker.postMessage({ type:'process', payload:{ width:imageData.width, height:imageData.height, buffer: copy.buffer, k, algorithm: algorithmSelect.value, colorSpace: colorSpaceSelect.value, perceptualWeighting: perceptualWeightingCheckbox.checked, preprocessing: preprocessingSelect.value, blurStrength: Number(blurStrengthRange.value), strayPixelSize: effectiveStrayPixelSize, seed, lockedCentroids, useCIEDE2000: ciede2000Checkbox.checked } }, [copy.buffer]);
   });
+}
+
+function isGifActive(){
+  return Boolean(gifSession);
+}
+
+function clearGifSession(){
+  if (gifSession){
+    gifProcessor.releaseSession(gifSession);
+    gifSession = null;
+  }
+  gifPerColorFrames = [];
+  if (processedGifUrl){
+    URL.revokeObjectURL(processedGifUrl);
+    processedGifUrl = null;
+  }
+}
+
+function ensureLayersOpaque(layers){
+  layers.forEach(layer => {
+    const data = layer.data;
+    for (let i = 3; i < data.length; i += 4){
+      if (data[i] > 0){
+        data[i] = 255;
+      }
+    }
+  });
+}
+
+async function loadGifFile(file){
+  clearGifSession();
+  try {
+    const session = await gifProcessor.loadSessionFromFile(file);
+    const loopBlob = await gifProcessor.createLoopedGif(session, { forceOpaque: forceOpaqueChk.checked });
+    session.loopedUrl = URL.createObjectURL(loopBlob);
+    session.loopCount = 0;
+    gifSession = session;
+    gifPerColorFrames = [];
+    await showImageDataPreview(session.frames[0].imageData, session.width, session.height);
+    const originalImageEl = document.getElementById('original-image');
+    if (originalImageEl){
+      originalImageEl.src = session.loopedUrl || session.originalUrl;
+    }
+    return true;
+  } catch (err){
+    console.warn('GIF decode failed, falling back to static image processing', err);
+    clearGifSession();
+    return false;
+  }
+}
+
+async function encodeProcessedGif(frames, centroids){
+  if (!gifSession){
+    throw new Error('Cannot encode GIF without an active session');
+  }
+  const blob = await gifProcessor.encodePaletteGif({
+    frames,
+    centroids,
+    loopCount: 0,
+    forceOpaque: forceOpaqueChk.checked
+  });
+  if (processedGifUrl){
+    URL.revokeObjectURL(processedGifUrl);
+  }
+  processedGifUrl = URL.createObjectURL(blob);
+  const processedImageEl = document.getElementById('processed-image');
+  if (processedImageEl){
+    const handleLoad = () => {
+      processedImageEl.removeEventListener('load', handleLoad);
+      if (gifSession?.loopedUrl){
+        const originalImageEl = document.getElementById('original-image');
+        if (originalImageEl){
+          originalImageEl.src = '';
+          requestAnimationFrame(() => {
+            originalImageEl.src = gifSession.loopedUrl;
+          });
+        }
+      }
+    };
+    processedImageEl.addEventListener('load', handleLoad);
+  }
+  return processedGifUrl;
 }
 
 // UI bindings
@@ -174,24 +207,24 @@ randomSeedCheckbox.addEventListener('change', ()=>{
 downloadBtn.addEventListener('click', async () => {
   if(!currentLayerData.length){ alert('Process an image first'); return; }
   // If animated GIF processed, export per-color as animated GIFs
-  if (isAnimatedGif && perColorGifFrames.length){
-    await importGifEnc();
-    const zip = new JSZip(); const folder = zip.folder('gif-layers');
-  for (let ci=0; ci<perColorGifFrames.length; ci++){
-  const enc = gifEnc.GIFEncoder();
-      for (const fr of perColorGifFrames[ci]){
-        const rgba = fr.imageData.data;
-        // Use RGBA palette so masked transparency is preserved
-        const pal = gifEnc.quantize(rgba, 256, { format: 'rgba4444', oneBitAlpha: true, clearAlpha: true });
-        const index = gifEnc.applyPalette(rgba, pal, 'rgba4444');
-    enc.writeFrame(index, fr.imageData.width, fr.imageData.height, { palette: pal, delay: Math.round(fr.delayCs * 10), transparent: true, repeat: gifLoopCount||0, dispose: 2 });
-      }
-      enc.finish();
-      const bytes = enc.bytes();
-      const centroid=currentCentroids[ci]; const hex=rgbToHex(centroid[0],centroid[1],centroid[2]);
-      folder.file(`${hex}.gif`, new Blob([bytes], { type:'image/gif' }));
+  if (gifSession && gifPerColorFrames.length){
+    const zip = new JSZip();
+    const folder = zip.folder('gif-layers');
+    for (let ci=0; ci<gifPerColorFrames.length; ci++){
+      const frames = gifPerColorFrames[ci];
+      if (!frames.length) continue;
+      const centroid = currentCentroids[ci];
+      const blob = await gifProcessor.encodeSingleColorGif({
+        frames,
+        color: centroid,
+        loopCount: 0,
+        forceOpaque: forceOpaqueChk.checked
+      });
+      const hex=rgbToHex(centroid[0],centroid[1],centroid[2]);
+      folder.file(`${hex}.gif`, blob);
     }
-    const content = await zip.generateAsync({type:'blob'}); const a=document.createElement('a'); a.href=URL.createObjectURL(content); a.download='color-gif-layers.zip'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    const content = await zip.generateAsync({type:'blob'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(content); a.download='color-gif-layers.zip'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
     return;
   }
   // Default: static PNGs
@@ -221,59 +254,12 @@ function preventDefaults(e){ e.preventDefault(); e.stopPropagation(); }
 
 async function handleFile(file){
   if(!file.type.startsWith('image/')) return;
-  // Reset GIF state
-  resetGifState();
+  clearGifSession();
   if (file.type === 'image/gif'){
-    const ok = await tryLoadGif(file);
+    const ok = await loadGifFile(file);
     if (ok) return;
   }
   await loadStaticImage(file);
-}
-
-function resetGifState(){
-  isAnimatedGif = false; gifFrames = []; gifLoopCount = 0; perColorGifFrames = [];
-  // Revoke any existing blob URLs
-  if (originalGifUrl){ URL.revokeObjectURL(originalGifUrl); originalGifUrl = null; }
-  if (processedGifUrl){ URL.revokeObjectURL(processedGifUrl); processedGifUrl = null; }
-}
-
-async function tryLoadGif(file){
-  try{
-    const buf = await file.arrayBuffer();
-    await importGifDecode();
-    const gif = gifDecode.parseGIF(buf);
-    const frames = gifDecode.decompressFrames(gif, true);
-    const w = gif.lsd.width, h = gif.lsd.height;
-    // Try to read loop count
-    try {
-      const appExt=(gif.extensions||[]).find(e=>e.type==='application'&&e.identifier==='NETSCAPE'&&e.authCode==='2.0');
-      if(appExt?.data?.loopCount!=null) gifLoopCount = appExt.data.loopCount;
-    } catch {}
-    // Composite frames honoring disposal
-    const c=document.createElement('canvas'); c.width=w; c.height=h; const ctx=c.getContext('2d',{willReadFrequently:true});
-    let prev = ctx.getImageData(0,0,w,h);
-    for (const f of frames){
-      const id = ctx.createImageData(f.dims.width, f.dims.height);
-      id.data.set(f.patch);
-      ctx.putImageData(id, f.dims.left, f.dims.top);
-      const composed = ctx.getImageData(0,0,w,h);
-      // GIF GCE delay is in hundredths of a second (centiseconds). Preserve original, including 0.
-      const delayCs = Number.isFinite(f.delay) ? Math.max(0, f.delay) : 0;
-      gifFrames.push({ imageData: composed, delayCs });
-      if (f.disposalType===2) ctx.clearRect(f.dims.left, f.dims.top, f.dims.width, f.dims.height);
-      else if (f.disposalType===3) ctx.putImageData(prev, 0, 0);
-      else prev = composed;
-    }
-    isAnimatedGif = gifFrames.length > 1;
-  // Play the original GIF in the comparison slider
-  if (originalGifUrl){ URL.revokeObjectURL(originalGifUrl); }
-  originalGifUrl = URL.createObjectURL(file);
-  const originalImageEl = document.getElementById('original-image');
-  if (originalImageEl){ originalImageEl.src = originalGifUrl; }
-  // Show the first frame in the canvas preview for processing context
-  await showImageDataPreview(gifFrames[0].imageData, w, h);
-    return true;
-  }catch(err){ console.warn('GIF decode failed, falling back to static', err); return false; }
 }
 
 async function showImageDataPreview(imageData, w, h){
@@ -295,10 +281,76 @@ function drawPreview(img){ const ctx=preview.getContext('2d',{willReadFrequently
 
 function getCurrentSeed(){ if(randomSeedCheckbox.checked){ const seed=Math.floor(Math.random()*1000000); seedInput.value=seed; seedVal.textContent=seed; return seed; } return Number(seedInput.value); }
 
+async function processGif(k, seed){
+  if (!gifSession){
+    throw new Error('No GIF session available');
+  }
+  const locked = currentCentroids.filter((_, i) => colorLocks[i]);
+  if (locked.length > k){
+    alert('Locked colors exceed requested color count. Increase Colors or unlock some.');
+    return;
+  }
+  processBtn.disabled = true;
+  processBtn.textContent = 'Processing GIF...';
+  try {
+    const referenceImage = gifProcessor.buildReferenceImage(gifSession.frames, { forceOpaque: forceOpaqueChk.checked });
+    const analysisResult = await runWorkerOnce(referenceImage, { k, lockedCentroids: locked, seed });
+    currentCentroids = analysisResult.centroids.map(c => [...c]);
+    currentLayerData = analysisResult.layers.map(l => new ImageData(new Uint8ClampedArray(l.buffer), l.width, l.height));
+    currentImageDimensions = { width: analysisResult.width, height: analysisResult.height };
+    if (forceOpaqueChk.checked){
+      ensureLayersOpaque(currentLayerData);
+    }
+    renderResult();
+
+  gifPerColorFrames = currentCentroids.map(() => []);
+  const composedFrames = [];
+    const frameCount = gifSession.frames.length;
+
+    for (let fi = 0; fi < frameCount; fi++){
+      if (fi % 10 === 0 || fi === frameCount - 1){
+        processBtn.textContent = `Processing frame ${fi + 1}/${frameCount}...`;
+      }
+      const sourceFrame = gifSession.frames[fi];
+      const res = await runWorkerOnce(sourceFrame.imageData, {
+        k: currentCentroids.length,
+        lockedCentroids: currentCentroids,
+        seed,
+        strayPixelSize: 0
+      });
+      const layers = res.layers.map(l => new ImageData(new Uint8ClampedArray(l.buffer), l.width, l.height));
+      if (forceOpaqueChk.checked){
+        ensureLayersOpaque(layers);
+      }
+      layers.forEach((layer, colorIndex) => {
+        gifPerColorFrames[colorIndex].push({ imageData: layer, delayCs: sourceFrame.delayCs, disposal: sourceFrame.disposal });
+      });
+      const composite = gifProcessor.composeLayers(layers, res.width, res.height);
+      composedFrames.push({ imageData: composite, delayCs: sourceFrame.delayCs, layers, disposal: sourceFrame.disposal });
+      if (fi === 0){
+        currentLayerData = layers;
+        currentImageDimensions = { width: res.width, height: res.height };
+        updateBlendedImage();
+      }
+    }
+
+    const processedUrl = await encodeProcessedGif(composedFrames, currentCentroids);
+    const processedImageEl = document.getElementById('processed-image');
+    if (processedImageEl){
+      processedImageEl.src = processedUrl;
+    }
+  } catch (err){
+    alert('GIF processing failed: ' + (err?.message || err));
+  } finally {
+    processBtn.disabled = false;
+    processBtn.textContent = 'Separate';
+  }
+}
+
 processBtn.addEventListener('click', async ()=>{
   const k=Number(colorsRange.value); if(k<1){ alert('Invalid color count'); return; }
   const seed=getCurrentSeed();
-  if (!isAnimatedGif){
+  if (!gifSession){
     if(!originalImage){ alert('Choose an image first'); return; }
     drawPreview(originalImage);
     const ctx=preview.getContext('2d',{willReadFrequently:true}); const img=ctx.getImageData(0,0,preview.width, preview.height);
@@ -308,54 +360,7 @@ processBtn.addEventListener('click', async ()=>{
     worker.postMessage({ type:'process', payload:{ width:img.width, height:img.height, buffer: img.data.buffer, k, algorithm: algorithmSelect.value, colorSpace: colorSpaceSelect.value, perceptualWeighting: perceptualWeightingCheckbox.checked, preprocessing: preprocessingSelect.value, blurStrength: Number(blurStrengthRange.value), strayPixelSize: Number(strayPixelSizeRange.value), seed, lockedCentroids, useCIEDE2000: ciede2000Checkbox.checked } }, [img.data.buffer]);
     return;
   }
-  // Animated GIF pipeline
-  processBtn.disabled=true; processBtn.textContent='Processing GIF...';
-  try {
-    const locked = currentCentroids.filter((_,i)=>colorLocks[i]);
-    if(locked.length > k){ alert('Locked colors exceed requested color count. Increase Colors or unlock some.'); processBtn.disabled=false; processBtn.textContent='Separate'; return; }
-    // First frame: compute centroids
-    const firstRes = await runWorkerOnce(gifFrames[0].imageData, { k, lockedCentroids: locked, seed });
-    currentCentroids = firstRes.centroids.map(c=>[...c]);
-    currentLayerData = firstRes.layers.map(l => new ImageData(new Uint8ClampedArray(l.buffer), l.width, l.height));
-    currentImageDimensions = { width: firstRes.width, height: firstRes.height };
-    renderResult();
-    // All frames: classify using locked centroids
-    perColorGifFrames = currentCentroids.map(()=>[]);
-    const compositeFrames = [];
-    for (let fi=0; fi<gifFrames.length; fi++){
-      const res = await runWorkerOnce(gifFrames[fi].imageData, { k: currentCentroids.length, lockedCentroids: currentCentroids, seed });
-      const layers = res.layers.map(l => new ImageData(new Uint8ClampedArray(l.buffer), l.width, l.height));
-      for (let ci=0; ci<layers.length; ci++) perColorGifFrames[ci].push({ imageData: layers[ci], delayCs: gifFrames[fi].delayCs });
-      // Build blended composite for this frame
-      const c=document.createElement('canvas'); c.width=res.width; c.height=res.height; const bctx=c.getContext('2d');
-      for (const layer of layers){ const lc=document.createElement('canvas'); lc.width=layer.width; lc.height=layer.height; lc.getContext('2d').putImageData(layer,0,0); bctx.drawImage(lc,0,0); }
-      const frameImageData = bctx.getImageData(0,0,res.width,res.height);
-  compositeFrames.push({ imageData: frameImageData, delayCs: gifFrames[fi].delayCs });
-      if (fi===0){ currentLayerData = layers; currentImageDimensions = { width: res.width, height: res.height }; updateBlendedImage(); }
-    }
-    // Encode composite quantized GIF
-    try{
-      await importGifEnc();
-      const enc = gifEnc.GIFEncoder();
-      for (const fr of compositeFrames){
-        const rgba = fr.imageData.data;
-        const pal = gifEnc.quantize(rgba, 256, { format: 'rgba4444', oneBitAlpha: true, clearAlpha: true });
-        const index = gifEnc.applyPalette(rgba, pal, 'rgba4444');
-        // gifenc expects delay in ms
-        enc.writeFrame(index, fr.imageData.width, fr.imageData.height, { palette: pal, delay: Math.round(fr.delayCs * 10), transparent: true, repeat: gifLoopCount||0, dispose: 2 });
-      }
-      enc.finish();
-      const bytes = enc.bytes();
-      if (processedGifUrl){ URL.revokeObjectURL(processedGifUrl); }
-      processedGifUrl = URL.createObjectURL(new Blob([bytes], { type:'image/gif' }));
-      const processedImageEl = document.getElementById('processed-image');
-      if (processedImageEl){ processedImageEl.src = processedGifUrl; }
-    }catch(e){ console.warn('Quantized GIF encoding failed', e); }
-  } catch (err) {
-    alert('GIF processing failed: ' + (err?.message || err));
-  } finally {
-    processBtn.disabled=false; processBtn.textContent='Separate';
-  }
+  await processGif(k, seed);
 });
 
 function renderResult(){
@@ -406,14 +411,13 @@ function updateComparisonViews(blended){
   }
   if(originalImageEl){ originalImageEl.style.setProperty('aspect-ratio', `${blended.width} / ${blended.height}`); }
   if(processedImageEl){ processedImageEl.style.setProperty('aspect-ratio', `${blended.width} / ${blended.height}`); }
-  if (isAnimatedGif && originalGifUrl && originalImageEl){
-    // Keep the original animated GIF playing
-    originalImageEl.src = originalGifUrl;
+  if (gifSession && originalImageEl){
+    originalImageEl.src = gifSession.originalUrl;
   } else if(originalImage){
     const originalCanvas=document.createElement('canvas'); originalCanvas.width=blended.width; originalCanvas.height=blended.height; const octx=originalCanvas.getContext('2d'); if(octx) octx.drawImage(originalImage,0,0,blended.width, blended.height);
     if(originalImageEl){ originalImageEl.src=originalCanvas.toDataURL(); }
   }
-  if (isAnimatedGif && processedGifUrl && processedImageEl){
+  if (gifSession && processedGifUrl && processedImageEl){
     // Keep the processed animated GIF playing
     processedImageEl.src = processedGifUrl;
   } else if(processedImageEl){
@@ -495,7 +499,7 @@ mergeBtn?.addEventListener('click', ()=>{
   mergeSelection.clear(); renderResult(); updateBlendedImage();
 });
 
-function updateBlendedImage(){ const blended=document.createElement('canvas'); blended.width=currentImageDimensions.width; blended.height=currentImageDimensions.height; const ctx=blended.getContext('2d'); for(const layer of currentLayerData){ const c=document.createElement('canvas'); c.width=layer.width; c.height=layer.height; c.getContext('2d').putImageData(layer,0,0); ctx.drawImage(c,0,0); } const processedEl=document.getElementById('processed-image'); if (!isAnimatedGif) processedEl.src=blended.toDataURL(); }
+function updateBlendedImage(){ const blended=document.createElement('canvas'); blended.width=currentImageDimensions.width; blended.height=currentImageDimensions.height; const ctx=blended.getContext('2d'); for(const layer of currentLayerData){ const c=document.createElement('canvas'); c.width=layer.width; c.height=layer.height; c.getContext('2d').putImageData(layer,0,0); ctx.drawImage(c,0,0); } const processedEl=document.getElementById('processed-image'); if (!gifSession) processedEl.src=blended.toDataURL(); }
 
 function setupHighlightOverlay(width,height){
   const overlay=document.getElementById('highlight-overlay');
@@ -550,7 +554,7 @@ function highlightColorRegion(idx, highlightOpacity = 1, otherOpacity = 0.1) {
   const processedCanvas = document.createElement('canvas'); processedCanvas.width = width; processedCanvas.height = height;
   const pctx = processedCanvas.getContext('2d'); if (pctx){ pctx.putImageData(mask, 0, 0); }
   // For animated GIF playback, do not replace the processed image src
-  if (!isAnimatedGif){ processed.src = processedCanvas.toDataURL(); }
+  if (!gifSession){ processed.src = processedCanvas.toDataURL(); }
   const ctx = overlay.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, width, height); ctx.putImageData(mask, 0, 0); overlay.style.opacity = '1';
 }
 
@@ -580,12 +584,12 @@ function hideHighlight() {
   const mask = buildFullMask();
   const processedCanvas = document.createElement('canvas'); processedCanvas.width = width; processedCanvas.height = height;
   const pctx = processedCanvas.getContext('2d'); if (pctx){ pctx.putImageData(mask, 0, 0); }
-  if (!isAnimatedGif){ processed.src = processedCanvas.toDataURL(); }
+  if (!gifSession){ processed.src = processedCanvas.toDataURL(); }
   overlay.style.opacity = '0';
 }
 
 // Expose for potential debugging
-window._cspState = () => ({ currentCentroids, currentLayerData, currentImageDimensions });
+window._cspState = () => ({ currentCentroids, currentLayerData, currentImageDimensions, gifSession });
 
 // Stats helpers
 function computeClusterCounts(){ const counts=new Array(currentCentroids.length).fill(0); let total=0; currentLayerData.forEach((layer,idx)=>{ const d=layer.data; for(let i=0;i<d.length;i+=4) if(d[i+3]>0){ counts[idx]++; total++; } }); clusterPixelCounts=counts; totalClusterPixels=total; }

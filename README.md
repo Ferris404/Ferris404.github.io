@@ -12,6 +12,7 @@ A web application for separating colors in images using various quantization alg
 - **Smart export**: 
   - Single image: Creates a ZIP with color layers
   - Multiple images: Creates a ZIP with folders named after each image containing their color layers
+- **Animated GIF pipeline**: Decode, recolor, preview, and export quantized GIFs or per-color animation layers
 - **Real-time preview**: Compare original vs processed images with an interactive slider
 
 ## Usage

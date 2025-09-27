@@ -173,7 +173,30 @@ export function quantizeColorsKMeansAdvanced(data, k, colorSpace='rgb', usePerce
 
 export function buildLayerData(data, centroids, w, h){
   const k=centroids.length; const layers=new Array(k).fill(0).map(()=>new ImageData(w,h));
-  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=(y*w+x)*4; if(data[i+3]<10){ for(let c=0;c<k;c++) layers[c].data[i+3]=0; continue; } const r=data[i],g=data[i+1],b=data[i+2]; let bi=0, bd=Infinity; for(let c=0;c<k;c++){ const cc=centroids[c]; const d=(r-cc[0])**2+(g-cc[1])**2+(b-cc[2])**2; if(d<bd){bd=d;bi=c;} } for(let c=0;c<k;c++){ const ld=layers[c].data; if(c===bi){ ld[i]=centroids[c][0]; ld[i+1]=centroids[c][1]; ld[i+2]=centroids[c][2]; ld[i+3]=255;} else ld[i+3]=0; }}
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ 
+    const i=(y*w+x)*4; 
+    if(data[i+3]<64){ 
+      for(let c=0;c<k;c++) layers[c].data[i+3]=0; 
+      continue; 
+    } 
+    const r=data[i],g=data[i+1],b=data[i+2]; 
+    let bi=0, bd=Infinity; 
+    for(let c=0;c<k;c++){ 
+      const cc=centroids[c]; 
+      const d=(r-cc[0])**2+(g-cc[1])**2+(b-cc[2])**2; 
+      if(d<bd){bd=d;bi=c;} 
+    } 
+    // Always assign visible pixels to the nearest centroid, regardless of distance
+    for(let c=0;c<k;c++){ 
+      const ld=layers[c].data; 
+      if(c===bi){ 
+        ld[i]=centroids[c][0]; 
+        ld[i+1]=centroids[c][1]; 
+        ld[i+2]=centroids[c][2]; 
+        ld[i+3]=255;
+      } else ld[i+3]=0; 
+    }
+  }
   return layers;
 }
 
@@ -185,7 +208,7 @@ export function octreeQuantize(data, k, w, h){
 }
 
 export function quantizeColorsMedianCut(data, k){
-  const pixels=[]; for(let i=0;i<data.length;i+=4) if(data[i+3]>10) pixels.push([data[i],data[i+1],data[i+2]]);
+  const pixels=[]; for(let i=0;i<data.length;i+=4) if(data[i+3]>64) pixels.push([data[i],data[i+1],data[i+2]]);
   function split(box){ const axis=box.axis; box.pixels.sort((a,b)=>a[axis]-b[axis]); const mid=Math.floor(box.pixels.length/2); return [{pixels:box.pixels.slice(0,mid),axis:(axis+1)%3},{pixels:box.pixels.slice(mid),axis:(axis+1)%3}]; }
   let boxes=[{pixels,axis:0}]; while(boxes.length<k) boxes=boxes.flatMap(split);
   return boxes.map(b=>{ const avg=b.pixels.reduce((a,p)=>[a[0]+p[0],a[1]+p[1],a[2]+p[2]],[0,0,0]); return avg.map(v=>Math.round(v/b.pixels.length)); });
@@ -202,7 +225,7 @@ export function createVectorizedRepresentation(data, centroids, w, h, strayPixel
     if (centroids.length) {
       for (let p = 0; p < pixelCount; p++) {
         const o = p * 4;
-        if (data[o + 3] <= 10) continue;
+        if (data[o + 3] <= 64) continue;
 
         let covered = false;
         for (const layer of layers) {
